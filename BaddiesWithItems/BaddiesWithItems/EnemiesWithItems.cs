@@ -12,9 +12,9 @@ using UnityEngine.Networking;
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.BaddiesWithItems", "BaddiesWithItems", "1.0.0")]
+    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.0.0")]
 
-    public class BaddiesWithItems : BaseUnityPlugin
+    public class EnemiesWithItems : BaseUnityPlugin
     {
         public static ConfigWrapper<bool> GenerateItems;
         public static ConfigWrapper<string> ItemMultiplier;
