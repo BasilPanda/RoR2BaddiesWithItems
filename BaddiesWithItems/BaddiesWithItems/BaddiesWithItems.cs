@@ -124,14 +124,14 @@ namespace BaddiesWithItems
 
             ItemsBlacklist = Config.Wrap(
                 "General Settings",
-                "TeslaCoil",
-                "Toggles Unstable Tesla Coil to be inherited/generated.",
+                "BlacklistItems",
+                "Toggles blacklisted items to be inherited/generated.",
                 false);
 
             Limiter = Config.Wrap(
                 "General Settings",
                 "Limiter",
-                "Toggles certain items to be limited. For more information, check this mod's FAQ at the thunderstore!",
+                "Toggles certain items to be capped. For more information, check this mod's FAQ at the thunderstore!",
                 true);
 
             Tier1Items = Config.Wrap(
@@ -178,14 +178,17 @@ namespace BaddiesWithItems
             EquipmentIndex.Lightning,
             EquipmentIndex.Scanner,
             EquipmentIndex.CommandMissile,
-            EquipmentIndex.Meteor,
             EquipmentIndex.LunarPotion, // no idea what this is but it has lunar on it :D
-            EquipmentIndex.CrippleWard
+            EquipmentIndex.BurnNearby
         };
 
         public static ItemIndex[] ItemBlacklist = new ItemIndex[]
         {
-            ItemIndex.ShockNearby
+            ItemIndex.StickyBomb,
+            ItemIndex.StunChanceOnHit,
+            ItemIndex.NovaOnHeal,
+            ItemIndex.ShockNearby,
+            ItemIndex.Mushroom
         };
 
         public static ItemIndex[] ItemsNeverUsed = new ItemIndex[]
@@ -339,7 +342,11 @@ namespace BaddiesWithItems
 
         public static void checkConfig(Inventory inventory, CharacterMaster master)
         {
-            if (GenerateItems.Value) // Using generator instead
+            if (InheritItems.Value) // inheritance
+            {
+                updateInventory(inventory, master);
+            }
+            else if (GenerateItems.Value) // Using generator instead
             {
                 resetInventory(inventory);
                 int scc = Run.instance.stageClearCount;
@@ -411,10 +418,6 @@ namespace BaddiesWithItems
                 multiplier(inventory);
                 blacklist(inventory);
 
-            }
-            else if (InheritItems.Value) // inheritance
-            {
-                updateInventory(inventory, master);
             }
             else 
             {
@@ -572,16 +575,6 @@ namespace BaddiesWithItems
                     inventory.ResetItem(ItemIndex.EquipmentMagazine);
                     inventory.GiveItem(ItemIndex.EquipmentMagazine, 3);
                 }
-                if (inventory.GetItemCount(ItemIndex.StunChanceOnHit) > 2)
-                {
-                    inventory.ResetItem(ItemIndex.StunChanceOnHit);
-                    inventory.GiveItem(ItemIndex.StunChanceOnHit, 2);
-                }
-                if (inventory.GetItemCount(ItemIndex.StickyBomb) > 10)
-                {
-                    inventory.ResetItem(ItemIndex.StickyBomb);
-                    inventory.GiveItem(ItemIndex.StickyBomb, 10);
-                }
                 if (inventory.GetItemCount(ItemIndex.SlowOnHit) > 1)
                 {
                     inventory.ResetItem(ItemIndex.SlowOnHit);
@@ -592,11 +585,7 @@ namespace BaddiesWithItems
                     inventory.ResetItem(ItemIndex.Behemoth);
                     inventory.GiveItem(ItemIndex.Behemoth, 2);
                 }
-                if (inventory.GetItemCount(ItemIndex.NovaOnHeal) > 1)
-                {
-                    inventory.ResetItem(ItemIndex.NovaOnHeal);
-                    inventory.GiveItem(ItemIndex.NovaOnHeal, 1);
-                }
+               
             }
             
         }
