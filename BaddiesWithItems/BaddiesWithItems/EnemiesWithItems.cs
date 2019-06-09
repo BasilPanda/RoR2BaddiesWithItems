@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.0.0")]
+    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.1.1")]
 
     public class EnemiesWithItems : BaseUnityPlugin
     {
@@ -22,6 +22,8 @@ namespace BaddiesWithItems
         public static ConfigWrapper<int> StageReq;
         public static ConfigWrapper<bool> InheritItems;
 
+        //public static ConfigWrapper<string> MaxItems;
+        //public static ConfigWrapper<string> ScaleAmount;
         public static ConfigWrapper<string> Tier1GenCap;
         public static ConfigWrapper<string> Tier2GenCap;
         public static ConfigWrapper<string> Tier3GenCap;
@@ -31,6 +33,8 @@ namespace BaddiesWithItems
         public static ConfigWrapper<string> Tier3GenChance;
         public static ConfigWrapper<string> LunarGenChance;
         public static ConfigWrapper<string> EquipGenChance;
+
+        public static ConfigWrapper<string> CustomBlacklist;
 
         public static ConfigWrapper<bool> ItemsBlacklist;
         public static ConfigWrapper<bool> Limiter;
@@ -47,8 +51,22 @@ namespace BaddiesWithItems
             GenerateItems = Config.Wrap(
                 "Generator Settings",
                 "GenerateItems",
-                "Toggles baddies to have items generated.",
+                "Toggles item generation for enemies.",
                 true);
+
+            /*
+            MaxItems = Config.Wrap(
+                "Generator Settings",
+                "MaxItems",
+                "Sets the cap for items to be generated. Max possible items generated + ScaleAmount * Stages Cleared + Avg # of Player Items / 2",
+                "5");
+
+            ScaleAmount = Config.Wrap(
+                "Generator Settings",
+                "ScaleAmount",
+                "Sets the scaling value to be added to the MaxItems cap. Every stage cleared will increase the max item cap by this value.",
+                "2");
+            */
 
             Tier1GenCap = Config.Wrap(
                 "Generator Settings",
@@ -107,7 +125,7 @@ namespace BaddiesWithItems
             InheritItems = Config.Wrap(
                 "Inherit Settings",
                 "InheritItems",
-                "Toggles baddies to randomly inherit items from a random player. Overrides Generator Settings.",
+                "Toggles enemies to randomly inherit items from a random player. Overrides Generator Settings.",
                 false);
 
             ItemMultiplier = Config.Wrap(
@@ -119,13 +137,13 @@ namespace BaddiesWithItems
             StageReq = Config.Wrap(
                 "General Settings",
                 "StageReq",
-                "Sets the minimum stage to be cleared before having baddies inherit/generate items.",
+                "Sets the minimum stage to be cleared before having enemies inherit/generate items.",
                 4);
 
             ItemsBlacklist = Config.Wrap(
                 "General Settings",
                 "BlacklistItems",
-                "Toggles blacklisted items to be inherited/generated.",
+                "Toggles hard blacklisted items to be inherited/generated.",
                 false);
 
             Limiter = Config.Wrap(
@@ -167,8 +185,14 @@ namespace BaddiesWithItems
             EquipBlacklist = Config.Wrap(
                 "General Settings",
                 "EquipBlacklist",
-                "Toggles blacklisted Use items to be inherited/generated. MOST BLACKLISTED USE ITEMS ARE UNDODGEABLE.",
+                "Toggles hard blacklisted Use items to be inherited/generated. MOST BLACKLISTED USE ITEMS ARE UNDODGEABLE.",
                 false);
+
+            CustomBlacklist = Config.Wrap(
+                "General Settings",
+                "CustomBlacklist",
+                "Enter items ids separated by a comma and a space to blacklist certain items. ex) 41, 23, 17 \nItem ids: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names",
+                "");
         }
 
         public static EquipmentIndex[] EquipmentBlacklist = new EquipmentIndex[]
@@ -350,43 +374,97 @@ namespace BaddiesWithItems
             {
                 resetInventory(inventory);
                 int scc = Run.instance.stageClearCount;
+
+                // Get average # of items among all players.
+                int totalItems = 0;
+                foreach(PlayerCharacterMasterController player in PlayerCharacterMasterController.instances)
+                {
+                    foreach (ItemIndex index in ItemCatalog.allItems)
+                    {
+                        totalItems += player.master.inventory.GetItemCount(index);
+                    }
+                }
+                int avgItems = scc + totalItems / PlayerCharacterMasterController.instances.Count;
+
+                int numItems = 0;
+                int amount;
                 if (Tier1Items.Value)
                 {
                     foreach (ItemIndex index in ItemCatalog.tier1ItemList)
                     {
                         if (Util.CheckRoll(ConfigToFloat(Tier1GenChance.Value)))
                         {
-                            inventory.GiveItem(index, UnityEngine.Random.Range(0, (int)(scc * ConfigToFloat(Tier1GenCap.Value) + 1)));
+                            amount = UnityEngine.Random.Range(0, (int)(scc * ConfigToFloat(Tier1GenCap.Value) + 1));
+                            if (numItems + amount > avgItems)
+                            {
+                                amount = avgItems - numItems;
+                            }
+                            numItems += amount;
+                            inventory.GiveItem(index, amount);
+                        }
+                        if(numItems >= avgItems)
+                        {
+                            break;
                         }
                     }
                 }
-                if (Tier2Items.Value)
+                if (Tier2Items.Value && numItems < avgItems)
                 {
                     foreach (ItemIndex index in ItemCatalog.tier2ItemList)
                     {
                         if (Util.CheckRoll(ConfigToFloat(Tier2GenChance.Value)))
                         {
-                            inventory.GiveItem(index, UnityEngine.Random.Range(0, (int)(scc * ConfigToFloat(Tier2GenCap.Value) + 1)));
+                            amount = UnityEngine.Random.Range(0, (int)(scc * ConfigToFloat(Tier2GenCap.Value) + 1));
+                            if (numItems + amount > avgItems)
+                            {
+                                amount = avgItems - numItems;
+                            }
+                            numItems += amount;
+                            inventory.GiveItem(index, amount);
+                        }
+                        if (numItems >= avgItems)
+                        {
+                            break;
                         }
                     }
                 }
-                if (Tier3Items.Value)
+                if (Tier3Items.Value && numItems < avgItems)
                 {
                     foreach (ItemIndex index in ItemCatalog.tier3ItemList)
                     {
                         if (Util.CheckRoll(ConfigToFloat(Tier3GenChance.Value)))
                         {
-                            inventory.GiveItem(index, UnityEngine.Random.Range(0, (int)(scc * ConfigToFloat(Tier3GenCap.Value) + 1)));
+                            amount = UnityEngine.Random.Range(0, (int)(scc * ConfigToFloat(Tier3GenCap.Value) + 1));
+                            if (numItems + amount > avgItems)
+                            {
+                                amount = avgItems - numItems;
+                            }
+                            numItems += amount;
+                            inventory.GiveItem(index, amount);
+                        }
+                        if (numItems >= avgItems)
+                        {
+                            break;
                         }
                     }
                 }
-                if (LunarItems.Value)
+                if (LunarItems.Value && numItems < avgItems)
                 {
                     foreach (ItemIndex index in ItemCatalog.lunarItemList)
                     {
                         if (Util.CheckRoll(ConfigToFloat(LunarGenChance.Value)))
                         {
-                            inventory.GiveItem(index, UnityEngine.Random.Range(0, (int)(scc * ConfigToFloat(LunarGenCap.Value) + 1)));
+                            amount = UnityEngine.Random.Range(0, (int)(scc * ConfigToFloat(LunarGenCap.Value) + 1));
+                            if (numItems + amount > avgItems)
+                            {
+                                amount = avgItems - numItems;
+                            }
+                            numItems += amount;
+                            inventory.GiveItem(index, amount);
+                        }
+                        if (numItems >= avgItems)
+                        {
+                            break;
                         }
                     }
                 }
@@ -585,9 +663,29 @@ namespace BaddiesWithItems
                     inventory.ResetItem(ItemIndex.Behemoth);
                     inventory.GiveItem(ItemIndex.Behemoth, 2);
                 }
+                if (inventory.GetItemCount(ItemIndex.BleedOnHit) > 3)
+                {
+                    inventory.ResetItem(ItemIndex.BleedOnHit);
+                    inventory.GiveItem(ItemIndex.BleedOnHit, 3);
+                }
+                if (inventory.GetItemCount(ItemIndex.IgniteOnKill) > 2)
+                {
+                    inventory.ResetItem(ItemIndex.IgniteOnKill);
+                    inventory.GiveItem(ItemIndex.IgniteOnKill, 2);
+                } 
                
             }
-            
+
+            string [] customlist = CustomBlacklist.Value.Split(new[] { ',', ' '}, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach(string item in customlist)
+            {
+                int x = 0;
+                if(Int32.TryParse(item, out x)) 
+                {
+                    inventory.ResetItem(((ItemIndex)x));
+                }
+            }
         }
     }
 
