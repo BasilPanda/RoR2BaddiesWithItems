@@ -12,7 +12,7 @@ using UnityEngine.Networking;
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.1.1")]
+    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.0")]
 
     public class EnemiesWithItems : BaseUnityPlugin
     {
@@ -45,6 +45,8 @@ namespace BaddiesWithItems
         public static ConfigWrapper<bool> EquipItems;
         public static ConfigWrapper<bool> EquipBlacklist;
 
+        public static ConfigWrapper<bool> DropItems;
+        public static ConfigWrapper<string> DropChance;
 
         public void InitConfig()
         {
@@ -228,7 +230,7 @@ namespace BaddiesWithItems
             ItemIndex.BeetleGland,
             ItemIndex.CrippleWardOnLevel
         };
-        
+
         public static float ConfigToFloat(string configline)
         {
             if (float.TryParse(configline, out float x))
@@ -294,7 +296,7 @@ namespace BaddiesWithItems
                         directorPlacementRule.minDistance *= self.spawnDistanceMultiplier;
                         directorPlacementRule.maxDistance *= self.spawnDistanceMultiplier;
                         GameObject gameObject = DirectorCore.instance.TrySpawnObject(spawnCard, directorPlacementRule, self.GetFieldValue<Xoroshiro128Plus>("rng"));
-                        
+
                         if (gameObject)
                         {
                             float num4 = 1f;
@@ -324,7 +326,7 @@ namespace BaddiesWithItems
                                 int livingPlayerCount = Run.instance.livingPlayerCount;
                                 num4 *= Mathf.Pow((float)livingPlayerCount, 1f);
                             }
-                           
+
                             // this is it
                             if (Run.instance.stageClearCount >= StageReq.Value)
                             {
@@ -360,7 +362,7 @@ namespace BaddiesWithItems
                 }
                 return false;
             };
-            
+
         }
 
 
@@ -377,14 +379,14 @@ namespace BaddiesWithItems
 
                 // Get average # of items among all players.
                 int totalItems = 0;
-                foreach(PlayerCharacterMasterController player in PlayerCharacterMasterController.instances)
+                foreach (PlayerCharacterMasterController player in PlayerCharacterMasterController.instances)
                 {
                     foreach (ItemIndex index in ItemCatalog.allItems)
                     {
                         totalItems += player.master.inventory.GetItemCount(index);
                     }
                 }
-                int avgItems = scc + totalItems / PlayerCharacterMasterController.instances.Count;
+                int avgItems = (int)Math.Pow(scc,2) + totalItems / PlayerCharacterMasterController.instances.Count;
 
                 int numItems = 0;
                 int amount;
@@ -392,9 +394,9 @@ namespace BaddiesWithItems
                 {
                     foreach (ItemIndex index in ItemCatalog.tier1ItemList)
                     {
-                        if (Util.CheckRoll(ConfigToFloat(Tier1GenChance.Value)))
+                        if (Util.CheckRoll(ConfigToFloat(Tier1GenChance.Value) + (scc - StageReq.Value)))
                         {
-                            amount = UnityEngine.Random.Range(0, (int)(scc * ConfigToFloat(Tier1GenCap.Value) + 1));
+                            amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 2) * ConfigToFloat(Tier1GenCap.Value) + 1));
                             if (numItems + amount > avgItems)
                             {
                                 amount = avgItems - numItems;
@@ -402,7 +404,7 @@ namespace BaddiesWithItems
                             numItems += amount;
                             inventory.GiveItem(index, amount);
                         }
-                        if(numItems >= avgItems)
+                        if (numItems >= avgItems)
                         {
                             break;
                         }
@@ -412,9 +414,9 @@ namespace BaddiesWithItems
                 {
                     foreach (ItemIndex index in ItemCatalog.tier2ItemList)
                     {
-                        if (Util.CheckRoll(ConfigToFloat(Tier2GenChance.Value)))
+                        if (Util.CheckRoll(ConfigToFloat(Tier2GenChance.Value) + (scc - StageReq.Value)))
                         {
-                            amount = UnityEngine.Random.Range(0, (int)(scc * ConfigToFloat(Tier2GenCap.Value) + 1));
+                            amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 2) * ConfigToFloat(Tier2GenCap.Value) + 1));
                             if (numItems + amount > avgItems)
                             {
                                 amount = avgItems - numItems;
@@ -432,9 +434,9 @@ namespace BaddiesWithItems
                 {
                     foreach (ItemIndex index in ItemCatalog.tier3ItemList)
                     {
-                        if (Util.CheckRoll(ConfigToFloat(Tier3GenChance.Value)))
+                        if (Util.CheckRoll(ConfigToFloat(Tier3GenChance.Value) + (scc - StageReq.Value)))
                         {
-                            amount = UnityEngine.Random.Range(0, (int)(scc * ConfigToFloat(Tier3GenCap.Value) + 1));
+                            amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 2) * ConfigToFloat(Tier3GenCap.Value) + 1));
                             if (numItems + amount > avgItems)
                             {
                                 amount = avgItems - numItems;
@@ -452,9 +454,9 @@ namespace BaddiesWithItems
                 {
                     foreach (ItemIndex index in ItemCatalog.lunarItemList)
                     {
-                        if (Util.CheckRoll(ConfigToFloat(LunarGenChance.Value)))
+                        if (Util.CheckRoll(ConfigToFloat(LunarGenChance.Value) + (scc - StageReq.Value)))
                         {
-                            amount = UnityEngine.Random.Range(0, (int)(scc * ConfigToFloat(LunarGenCap.Value) + 1));
+                            amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 2) * ConfigToFloat(LunarGenCap.Value) + 1));
                             if (numItems + amount > avgItems)
                             {
                                 amount = avgItems - numItems;
@@ -476,7 +478,7 @@ namespace BaddiesWithItems
                         inventory.GiveItem(ItemIndex.AutoCastEquipment, 1);
                         EquipmentIndex equipmentIndex = Run.instance.availableEquipmentDropList[Run.instance.spawnRng.RangeInt(0, Run.instance.availableEquipmentDropList.Count)].equipmentIndex;
 
-                        if(!EquipBlacklist.Value)
+                        if (!EquipBlacklist.Value)
                         {
                             foreach (EquipmentIndex item in EquipmentBlacklist)
                             {
@@ -487,8 +489,8 @@ namespace BaddiesWithItems
                                 }
                             }
                         }
-                        
-                        
+
+
                         inventory.SetEquipmentIndex(equipmentIndex);
                     }
                 }
@@ -497,7 +499,7 @@ namespace BaddiesWithItems
                 blacklist(inventory);
 
             }
-            else 
+            else
             {
                 resetInventory(inventory);
             }
@@ -555,13 +557,13 @@ namespace BaddiesWithItems
             }
 
             multiplier(inventory);
-           
+
             if (EquipItems.Value)
             {
                 inventory.ResetItem(ItemIndex.AutoCastEquipment);
                 inventory.GiveItem(ItemIndex.AutoCastEquipment, 1);
                 inventory.CopyEquipmentFrom(master.inventory);
-                
+
                 foreach (EquipmentIndex item in EquipmentBlacklist)
                 {
                     if (inventory.GetEquipmentIndex() == item)
@@ -570,9 +572,9 @@ namespace BaddiesWithItems
                         break;
                     }
                 }
-                
+
             }
-            
+
             blacklist(inventory);
         }
 
@@ -628,7 +630,7 @@ namespace BaddiesWithItems
                 inventory.ResetItem(item);
             }
 
-            if(!ItemsBlacklist.Value)
+            if (!ItemsBlacklist.Value)
             {
                 foreach (ItemIndex item in ItemBlacklist)
                 {
@@ -636,7 +638,7 @@ namespace BaddiesWithItems
                 }
             }
 
-            if(Limiter.Value)
+            if (Limiter.Value)
             {
                 if (inventory.GetItemCount(ItemIndex.Bear) > 7)
                 {
@@ -672,16 +674,21 @@ namespace BaddiesWithItems
                 {
                     inventory.ResetItem(ItemIndex.IgniteOnKill);
                     inventory.GiveItem(ItemIndex.IgniteOnKill, 2);
-                } 
-               
+                }
+                if (inventory.GetItemCount(ItemIndex.AutoCastEquipment) > 1)
+                {
+                    inventory.ResetItem(ItemIndex.AutoCastEquipment);
+                    inventory.GiveItem(ItemIndex.AutoCastEquipment, 1);
+                }
+
             }
 
-            string [] customlist = CustomBlacklist.Value.Split(new[] { ',', ' '}, StringSplitOptions.RemoveEmptyEntries);
+            string[] customlist = CustomBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach(string item in customlist)
+            foreach (string item in customlist)
             {
                 int x = 0;
-                if(Int32.TryParse(item, out x)) 
+                if (Int32.TryParse(item, out x))
                 {
                     inventory.ResetItem(((ItemIndex)x));
                 }
