@@ -142,8 +142,8 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 **v1.2.0**
 
-- Added random enemy item drop setting (default to false)
-- Added item drop chance setting (default to 0.01%)
+- Added random enemy item drop setting (default to true)
+- Added item drop chance setting (default to 0.1%)
 - Item generation scaling now increases exponentially instead of linearly 
 - Item generation chance per tier now increases linearly per stage
 - Limited Gesture of the Drowned to at most 1 stack

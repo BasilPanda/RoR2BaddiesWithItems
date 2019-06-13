@@ -154,6 +154,18 @@ namespace BaddiesWithItems
                 "Toggles certain items to be capped. For more information, check this mod's FAQ at the thunderstore!",
                 true);
 
+            DropItems = Config.Wrap(
+                "General Settings",
+                "DropItems",
+                "Toggles Tier 1 (white) items to be inherited/generated.",
+                true);
+
+            DropChance = Config.Wrap(
+                "General Settings",
+                "DropChance",
+                "Toggles Tier 1 (white) items to be inherited/generated.",
+                "0.1");
+
             Tier1Items = Config.Wrap(
                 "General Settings",
                 "Tier1Items",
@@ -365,6 +377,62 @@ namespace BaddiesWithItems
 
         }
 
+        public void enemiesDrop() 
+        {
+            On.RoR2.DeathRewards.OnKilled += (orig, self, damageInfo) =>
+            {
+                orig(self, damageInfo);
+                if (DropItems.Value && Util.CheckRoll(ConfigToFloat(DropChance.Value), 0f, null))
+                {
+                    CharacterBody enemy = self.GetFieldValue<CharacterBody>("characterbody");
+                    Inventory inventory = enemy.master.inventory;
+                    List<PickupIndex> tier1Inventory = new List<PickupIndex>();
+                    List<PickupIndex> tier2Inventory = new List<PickupIndex>();
+                    List<PickupIndex> tier3Inventory = new List<PickupIndex>();
+                    List<PickupIndex> lunarTierInventory = new List<PickupIndex>();
+
+                    foreach(ItemIndex item in ItemCatalog.allItems) {
+                        if (Tier1Items.Value && ItemCatalog.tier1ItemList.Contains(item) && inventory.GetItemCount(item) > 0)
+                        {
+                            tier1Inventory.Add(new PickupIndex(item));
+                        }
+                        else if (Tier2Items.Value && ItemCatalog.tier2ItemList.Contains(item) && inventory.GetItemCount(item) > 0)
+                        {
+                            tier2Inventory.Add(new PickupIndex(item));
+                        }
+                        else if (Tier3Items.Value && ItemCatalog.tier3ItemList.Contains(item) && inventory.GetItemCount(item) > 0)
+                        {
+                            tier3Inventory.Add(new PickupIndex(item));
+                        }
+                        else if (LunarItems.Value && ItemCatalog.lunarItemList.Contains(item) && inventory.GetItemCount(item) > 0) {
+                            lunarTierInventory.Add(new PickupIndex(item));
+                        }
+                    }
+
+                    WeightedSelection<List<PickupIndex>> weightedSelection = new WeightedSelection<List<PickupIndex>>(8);
+                    if (Tier1Items.Value)
+                    {
+                        weightedSelection.AddChoice(tier1Inventory, 0.9f);
+                    }
+                    if (Tier2Items.Value)
+                    {
+                        weightedSelection.AddChoice(tier2Inventory, 0.1f);
+                    }
+                    if (Tier3Items.Value)
+                    {
+                        weightedSelection.AddChoice(tier3Inventory, 0.05f);
+                    }
+                    if (LunarItems.Value)
+                    {
+                        weightedSelection.AddChoice(lunarTierInventory, 0.01f);
+                    }
+
+                    List<PickupIndex> list = weightedSelection.Evaluate(Run.instance.treasureRng.nextNormalizedFloat);
+                    PickupDropletController.CreatePickupDroplet(list[Run.instance.treasureRng.RangeInt(0, list.Count)], base.transform.position + Vector3.up * 1.5f, Vector3.up * 20f + base.transform.forward * 2f);
+                }
+            };
+
+        }
 
         public static void checkConfig(Inventory inventory, CharacterMaster master)
         {
