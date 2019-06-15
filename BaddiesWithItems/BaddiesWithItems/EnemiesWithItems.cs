@@ -157,13 +157,13 @@ namespace BaddiesWithItems
             DropItems = Config.Wrap(
                 "General Settings",
                 "DropItems",
-                "Toggles Tier 1 (white) items to be inherited/generated.",
-                true);
+                "Toggles items to be dropped by enemies with items.",
+                false);
 
             DropChance = Config.Wrap(
                 "General Settings",
                 "DropChance",
-                "Toggles Tier 1 (white) items to be inherited/generated.",
+                "Sets the chance that an enemy drops one of their items",
                 "0.1");
 
             Tier1Items = Config.Wrap(
@@ -259,7 +259,7 @@ namespace BaddiesWithItems
             InitConfig();
 
             baddiesItems();
-
+            enemiesDrop();
         }
 
         public void baddiesItems()
