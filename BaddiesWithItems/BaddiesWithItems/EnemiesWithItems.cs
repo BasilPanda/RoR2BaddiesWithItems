@@ -157,7 +157,7 @@ namespace BaddiesWithItems
             DropChance = Config.Wrap(
                 "General Settings",
                 "DropChance",
-                "Sets the chance that an enemy drops one of their items",
+                "Sets the percent chance that an enemy drops one of their items",
                 "0.1");
 
             Tier1Items = Config.Wrap(
