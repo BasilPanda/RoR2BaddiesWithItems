@@ -147,7 +147,7 @@ namespace BaddiesWithItems
                 "Limiter",
                 "Toggles certain items to be capped. For more information, check this mod's FAQ at the thunderstore!",
                 true);
-
+            /*
             DropItems = Config.Wrap(
                 "General Settings",
                 "DropItems",
@@ -159,7 +159,7 @@ namespace BaddiesWithItems
                 "DropChance",
                 "Sets the percent chance that an enemy drops one of their items",
                 "0.1");
-
+            */
             Tier1Items = Config.Wrap(
                 "General Settings",
                 "Tier1Items",
@@ -225,6 +225,9 @@ namespace BaddiesWithItems
 
         public static ItemIndex[] ItemsNeverUsed = new ItemIndex[]
         {
+            ItemIndex.SprintWisp,
+            ItemIndex.ExecuteLowHealthElite,
+            ItemIndex.TitanGoldDuringTP,
             ItemIndex.TreasureCache,
             ItemIndex.BossDamageBonus,
             ItemIndex.Feather,
@@ -274,7 +277,7 @@ namespace BaddiesWithItems
                         totalItems += player.master.inventory.GetItemCount(index);
                     }
                 }
-                int avgItems = (int)Math.Pow(scc,2) + totalItems / PlayerCharacterMasterController.instances.Count;
+                int avgItems = (int)Math.Pow(scc,2) + totalItems;
 
                 int numItems = 0;
                 int amount;
@@ -304,7 +307,7 @@ namespace BaddiesWithItems
                     {
                         if (Util.CheckRoll(ConfigToFloat(Tier2GenChance.Value) + (scc - StageReq.Value)))
                         {
-                            amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 2) * ConfigToFloat(Tier2GenCap.Value) + 1));
+                            amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 1.8) * ConfigToFloat(Tier2GenCap.Value) + 1));
                             if (numItems + amount > avgItems)
                             {
                                 amount = avgItems - numItems;
@@ -324,7 +327,7 @@ namespace BaddiesWithItems
                     {
                         if (Util.CheckRoll(ConfigToFloat(Tier3GenChance.Value) + (scc - StageReq.Value)))
                         {
-                            amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 2) * ConfigToFloat(Tier3GenCap.Value) + 1));
+                            amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 1.5) * ConfigToFloat(Tier3GenCap.Value) + 1));
                             if (numItems + amount > avgItems)
                             {
                                 amount = avgItems - numItems;
@@ -344,7 +347,7 @@ namespace BaddiesWithItems
                     {
                         if (Util.CheckRoll(ConfigToFloat(LunarGenChance.Value) + (scc - StageReq.Value)))
                         {
-                            amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 2) * ConfigToFloat(LunarGenCap.Value) + 1));
+                            amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 1.1) * ConfigToFloat(LunarGenCap.Value) + 1));
                             if (numItems + amount > avgItems)
                             {
                                 amount = avgItems - numItems;

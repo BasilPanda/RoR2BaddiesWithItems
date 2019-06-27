@@ -157,7 +157,7 @@ namespace BaddiesWithItems
 
         }
 
-        // Enemies drop hook
+        // Enemies drop hook -- needs fixing
         public static void enemiesDrop()
         {
             On.RoR2.DeathRewards.OnKilledServer += (orig, self, damageInfo) =>
