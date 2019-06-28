@@ -157,24 +157,20 @@ namespace BaddiesWithItems
 
         }
 
-        // Enemies drop hook -- needs fixing
+        // Enemies drop hook
         public static void enemiesDrop()
         {
             On.RoR2.DeathRewards.OnKilledServer += (orig, self, damageInfo) =>
             {
                 orig(self, damageInfo);
-                Chat.AddMessage("0");
-                self.GetFieldValue<CharacterBody>("characterbody";
-                if (EnemiesWithItems.DropItems.Value && Util.CheckRoll(EnemiesWithItems.ConfigToFloat(EnemiesWithItems.DropChance.Value), 0f, null) && team.Equals(TeamIndex.Monster))
+                CharacterBody enemy = self.GetComponent<CharacterBody>();
+                if (EnemiesWithItems.DropItems.Value && Util.CheckRoll(EnemiesWithItems.ConfigToFloat(EnemiesWithItems.DropChance.Value), 0f, null) && enemy.master.teamIndex.Equals(TeamIndex.Monster))
                 {
-                    CharacterBody enemy = self.GetFieldValue<CharacterBody>("characterbody");
-                    Chat.AddMessage("1");
                     Inventory inventory = enemy.master.inventory;
                     List<PickupIndex> tier1Inventory = new List<PickupIndex>();
                     List<PickupIndex> tier2Inventory = new List<PickupIndex>();
                     List<PickupIndex> tier3Inventory = new List<PickupIndex>();
                     List<PickupIndex> lunarTierInventory = new List<PickupIndex>();
-                    Chat.AddMessage("2");
                     foreach (ItemIndex item in ItemCatalog.allItems)
                     {
                         if (EnemiesWithItems.Tier1Items.Value && ItemCatalog.tier1ItemList.Contains(item) && inventory.GetItemCount(item) > 0)
@@ -194,7 +190,6 @@ namespace BaddiesWithItems
                             lunarTierInventory.Add(new PickupIndex(item));
                         }
                     }
-                    Chat.AddMessage("3");
                     WeightedSelection<List<PickupIndex>> weightedSelection = new WeightedSelection<List<PickupIndex>>(8);
                     if (EnemiesWithItems.Tier1Items.Value)
                     {
@@ -212,8 +207,11 @@ namespace BaddiesWithItems
                     {
                         weightedSelection.AddChoice(lunarTierInventory, 0.01f);
                     }
-                    Chat.AddMessage("4");
                     List<PickupIndex> list = weightedSelection.Evaluate(Run.instance.treasureRng.nextNormalizedFloat);
+                    if (list.Count == 0)
+                    {
+                        return;
+                    }
                     PickupDropletController.CreatePickupDroplet(list[Run.instance.treasureRng.RangeInt(0, list.Count)], self.transform.position + Vector3.up * 1.5f, Vector3.up * 20f + self.transform.forward * 2f);
                 }
             };

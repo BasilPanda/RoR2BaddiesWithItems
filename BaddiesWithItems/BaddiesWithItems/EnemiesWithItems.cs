@@ -147,7 +147,7 @@ namespace BaddiesWithItems
                 "Limiter",
                 "Toggles certain items to be capped. For more information, check this mod's FAQ at the thunderstore!",
                 true);
-            /*
+            
             DropItems = Config.Wrap(
                 "General Settings",
                 "DropItems",
@@ -157,9 +157,9 @@ namespace BaddiesWithItems
             DropChance = Config.Wrap(
                 "General Settings",
                 "DropChance",
-                "Sets the percent chance that an enemy drops one of their items",
+                "Sets the percent chance that an enemy drops one of their items. Default 0.1 means average 1 in a 1000 kills will result in a drop.",
                 "0.1");
-            */
+            
             Tier1Items = Config.Wrap(
                 "General Settings",
                 "Tier1Items",
@@ -255,6 +255,7 @@ namespace BaddiesWithItems
 
             Hooks.baddiesItems();
             Hooks.enemiesDrop();
+            Chat.AddMessage("EnemiesWithItems v1.2.0 Loaded!");
         }
 
         public static void checkConfig(Inventory inventory, CharacterMaster master)
