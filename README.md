@@ -142,6 +142,7 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 **v1.2.0**
 
+- Updated mod for the Scorched Acres patch!
 - Added random enemy item drop setting (default to false)
 - Added item drop chance setting (default to 0.1%)
 - Item generation scaling now increases exponentially instead of linearly after StageReq

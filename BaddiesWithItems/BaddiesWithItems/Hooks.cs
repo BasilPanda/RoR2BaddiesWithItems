@@ -163,7 +163,8 @@ namespace BaddiesWithItems
             On.RoR2.DeathRewards.OnKilledServer += (orig, self, damageInfo) =>
             {
                 orig(self, damageInfo);
-                TeamIndex team = TeamComponent.GetObjectTeam(self.gameObject);
+                Chat.AddMessage("0");
+                self.GetFieldValue<CharacterBody>("characterbody";
                 if (EnemiesWithItems.DropItems.Value && Util.CheckRoll(EnemiesWithItems.ConfigToFloat(EnemiesWithItems.DropChance.Value), 0f, null) && team.Equals(TeamIndex.Monster))
                 {
                     CharacterBody enemy = self.GetFieldValue<CharacterBody>("characterbody");
