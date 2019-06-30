@@ -6,7 +6,7 @@ using RoR2;
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.0")]
+    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.1")]
 
     public class EnemiesWithItems : BaseUnityPlugin
     {
@@ -211,7 +211,8 @@ namespace BaddiesWithItems
             EquipmentIndex.Scanner,
             EquipmentIndex.CommandMissile,
             EquipmentIndex.LunarPotion, // no idea what this is but it has lunar on it :D
-            EquipmentIndex.BurnNearby
+            EquipmentIndex.BurnNearby,
+            EquipmentIndex.DroneBackup
         };
 
         public static ItemIndex[] ItemBlacklist = new ItemIndex[]
