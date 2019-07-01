@@ -212,7 +212,8 @@ namespace BaddiesWithItems
             EquipmentIndex.CommandMissile,
             EquipmentIndex.LunarPotion, // no idea what this is but it has lunar on it :D
             EquipmentIndex.BurnNearby,
-            EquipmentIndex.DroneBackup
+            EquipmentIndex.DroneBackup,
+            EquipmentIndex.Gateway
         };
 
         public static ItemIndex[] ItemBlacklist = new ItemIndex[]
@@ -256,7 +257,7 @@ namespace BaddiesWithItems
 
             Hooks.baddiesItems();
             Hooks.enemiesDrop();
-            Chat.AddMessage("EnemiesWithItems v1.2.0 Loaded!");
+            Chat.AddMessage("EnemiesWithItems v1.2.1 Loaded!");
         }
 
         public static void checkConfig(Inventory inventory, CharacterMaster master)
@@ -461,7 +462,7 @@ namespace BaddiesWithItems
                 {
                     if (inventory.GetEquipmentIndex() == item)
                     {
-                        inventory.SetEquipmentIndex(EquipmentIndex.Fruit); // default to fruit
+                        inventory.SetEquipmentIndex(EquipmentIndex.QuestVolatileBattery); // default to Fuel Array
                         break;
                     }
                 }

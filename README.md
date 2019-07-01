@@ -1,6 +1,6 @@
 # Enemies With Items
 ## By Basil
-A mod that allows enemies to be spawned with items!
+A mod allows enemies to be spawned with items for a more difficult experience!
 
 **Now scales exponentially depending on the total number of items from players!**
 
@@ -112,11 +112,13 @@ Stun Grenade
 Unstable Tesla Coil
 
 Disposable Missile Launcher
+Eccentric Vase
 Helfire Tincture
 Preon Accumulator
 Primordial Cube
 Radar Scanner
 Royal Capacitor
+The Back-up
 
 ## FAQ
 
@@ -146,6 +148,10 @@ Tougher Times - Capped at 7 - ~51% Dodge Chance
 Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 ## Changelog
+
+**v1.2.1**
+
+- Hard blacklisted The Back-up & Eccentric Vase
 
 **v1.2.0**
 
