@@ -6,7 +6,7 @@ using RoR2;
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.1")]
+    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.3")]
 
     public class EnemiesWithItems : BaseUnityPlugin
     {
@@ -28,7 +28,8 @@ namespace BaddiesWithItems
         public static ConfigWrapper<string> LunarGenChance;
         public static ConfigWrapper<string> EquipGenChance;
 
-        public static ConfigWrapper<string> CustomBlacklist;
+        public static ConfigWrapper<string> CustomItemBlacklist;
+        public static ConfigWrapper<string> CustomEquipBlacklist;
 
         public static ConfigWrapper<bool> ItemsBlacklist;
         public static ConfigWrapper<bool> Limiter;
@@ -196,11 +197,17 @@ namespace BaddiesWithItems
                 "Toggles hard blacklisted Use items to be inherited/generated. MOST BLACKLISTED USE ITEMS ARE UNDODGEABLE.",
                 false);
 
-            CustomBlacklist = Config.Wrap(
+            CustomItemBlacklist = Config.Wrap(
                 "General Settings",
-                "CustomBlacklist",
+                "CustomItemBlacklist",
                 "Enter items ids separated by a comma and a space to blacklist certain items. ex) 41, 23, 17 \nItem ids: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names",
                 "");
+
+            CustomEquipBlacklist = Config.Wrap(
+               "General Settings",
+               "CustomEquipBlacklist",
+               "Enter equipment ids separated by a comma and a space to blacklist certain equipments. ex) 1, 14, 13 \nEquip ids: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names",
+               "");
         }
 
         public static EquipmentIndex[] EquipmentBlacklist = new EquipmentIndex[]
@@ -257,7 +264,7 @@ namespace BaddiesWithItems
 
             Hooks.baddiesItems();
             Hooks.enemiesDrop();
-            Chat.AddMessage("EnemiesWithItems v1.2.1 Loaded!");
+            Chat.AddMessage("EnemiesWithItems v1.2.3 Loaded!");
         }
 
         public static void checkConfig(Inventory inventory, CharacterMaster master)
@@ -531,7 +538,7 @@ namespace BaddiesWithItems
                     inventory.ResetItem(item);
                 }
             }
-
+            // Limiter
             if (Limiter.Value)
             {
                 if (inventory.GetItemCount(ItemIndex.Bear) > 7)
@@ -577,14 +584,30 @@ namespace BaddiesWithItems
 
             }
 
-            string[] customlist = CustomBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            // Custom Items Blacklist
+            string[] customItemlist = CustomItemBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach (string item in customlist)
+            foreach (string item in customItemlist)
             {
                 int x = 0;
                 if (Int32.TryParse(item, out x))
                 {
                     inventory.ResetItem(((ItemIndex)x));
+                }
+            }
+
+            // Custom Equip Blacklist
+            string[] customEquiplist = CustomEquipBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string equip in customEquiplist)
+            {
+                int x = 0;
+                if (Int32.TryParse(equip, out x))
+                {
+                    if(inventory.GetEquipmentIndex() == (EquipmentIndex)x)
+                    {
+                        inventory.SetEquipmentIndex(EquipmentIndex.None);
+                    }
                 }
             }
         }

@@ -15,7 +15,7 @@ Please contact Basil#7379 on Discord for any issues or interests!
 
 ## Installation
 1. Install [BepInEx Mod Pack](https://thunderstore.io/package/bbepis/BepInExPack/)
-2. Install [R2API](https://thunderstore.io/package/tristanmcpherson/R2API/) *Please check the #faq in the modding discord if R2API still hasn't been updated on the thunderstore.*
+2. Install [R2API](https://thunderstore.io/package/tristanmcpherson/R2API/)
 3. Download the latest EnemiesWithItems.dll [here](https://thunderstore.io/package/BasilPanda/EnemiesWithItems/).
 4. Move EnemiesWithItems.dll to your \BepInEx\plugins folder
 
@@ -65,6 +65,9 @@ EquipBlacklist = false
 * Enter items ids separated by a comma and a space to blacklist certain items. ex) 41, 23, 17
 [Item IDs](https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names)
 CustomBlacklist = 
+
+* Enter equipment ids separated by a comma and a space to blacklist certain equipments. ex) 1, 14, 13 
+CustomEquipBlacklist = 
 
 [Generator Settings]
 
@@ -149,6 +152,14 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 ## Changelog
 
+**v1.2.3**
+
+- Added custom equipment blacklist setting
+
+**v1.2.2**
+
+- Updated R2API dependency string
+
 **v1.2.1**
 
 - Hard blacklisted The Back-up & Eccentric Vase
@@ -169,7 +180,7 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 **v1.1.0**
 
-- Added custom blacklist setting
+- Added custom item blacklist setting
 - Limited Tri-tip Dagger to at most 3 stacks
 - Enemy item generation now scales by stages cleared and the average amount of player items
 
@@ -184,3 +195,4 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 ## My Other Mods
 
 [DronesInheritItems](https://thunderstore.io/package/BasilPanda/DronesInheritItems/)
+[RemoveAllyCap](https://thunderstore.io/package/BasilPanda/RemoveAllyCap/)
