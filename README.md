@@ -44,6 +44,12 @@ BlacklistItems = false
 * Toggles certain items to be capped.
 Limiter = true
 
+* Toggles items to be dropped by enemies with items.
+DropItems = false
+
+* Sets the percent chance that an enemy drops one of their items. Default 0.1 means average 1 in a 1000 kills will result in a drop.
+DropChance = 0.1
+
 * Toggles Tier 1 (white) items to be inherited/generated.
 Tier1Items = true
 
@@ -125,6 +131,10 @@ The Back-up
 
 ## FAQ
 
+Q: I'm having heavy frame drops/lagging with ItemMulitplier set to 5 or greater! How do I fix this?
+
+A: You can't really fix this issue. With a higher multiplier, it makes the game more demanding in computer resources. You can only alleviate it by getting better computer parts. 
+
 Q: How does the item drop work for enemies?
 
 A: It will randomly choose an item from the pool of items that the enemy has when it dies. White items are the most common to drop and so on.
@@ -151,6 +161,11 @@ Tougher Times - Capped at 7 - ~51% Dodge Chance
 Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 ## Changelog
+
+**v1.2.4**
+
+- Fixed equipment generation by including lunar equips
+- Changed how Gesture of the Drowned is handled in generation (runs should be harder as it will generate other lunar items more often)
 
 **v1.2.3**
 

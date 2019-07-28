@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using BepInEx;
 using BepInEx.Configuration;
 using RoR2;
@@ -6,7 +7,7 @@ using RoR2;
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.3")]
+    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.4")]
 
     public class EnemiesWithItems : BaseUnityPlugin
     {
@@ -249,6 +250,40 @@ namespace BaddiesWithItems
             ItemIndex.CrippleWardOnLevel
         };
 
+        public static List<EquipmentIndex> allEquips = new List<EquipmentIndex>()
+        {
+            (EquipmentIndex)0,
+            (EquipmentIndex)1,
+            (EquipmentIndex)2,
+            (EquipmentIndex)3,
+            (EquipmentIndex)4,
+            (EquipmentIndex)5,
+            (EquipmentIndex)6,
+            (EquipmentIndex)7,
+            (EquipmentIndex)8,
+            (EquipmentIndex)9,
+            (EquipmentIndex)10,
+            (EquipmentIndex)11,
+            (EquipmentIndex)12,
+            (EquipmentIndex)13,
+            (EquipmentIndex)14,
+            (EquipmentIndex)15,
+            (EquipmentIndex)16,
+            (EquipmentIndex)17,
+            (EquipmentIndex)18,
+            (EquipmentIndex)19,
+            (EquipmentIndex)20,
+            (EquipmentIndex)21,
+            (EquipmentIndex)22,
+            (EquipmentIndex)23,
+            (EquipmentIndex)24,
+            (EquipmentIndex)25,
+            (EquipmentIndex)26,
+            (EquipmentIndex)27,
+            (EquipmentIndex)28,
+            (EquipmentIndex)29,
+        };
+
         public static float ConfigToFloat(string configline)
         {
             if (float.TryParse(configline, out float x))
@@ -264,7 +299,7 @@ namespace BaddiesWithItems
 
             Hooks.baddiesItems();
             Hooks.enemiesDrop();
-            Chat.AddMessage("EnemiesWithItems v1.2.3 Loaded!");
+            Chat.AddMessage("EnemiesWithItems v1.2.4 Loaded!");
         }
 
         public static void checkConfig(Inventory inventory, CharacterMaster master)
@@ -355,6 +390,10 @@ namespace BaddiesWithItems
                 {
                     foreach (ItemIndex index in ItemCatalog.lunarItemList)
                     {
+                        if(index == ItemIndex.AutoCastEquipment)
+                        {
+                            continue;
+                        }
                         if (Util.CheckRoll(ConfigToFloat(LunarGenChance.Value) + (scc - StageReq.Value)))
                         {
                             amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 1.1) * ConfigToFloat(LunarGenCap.Value) + 1));
@@ -377,25 +416,49 @@ namespace BaddiesWithItems
                     {
                         inventory.ResetItem(ItemIndex.AutoCastEquipment);
                         inventory.GiveItem(ItemIndex.AutoCastEquipment, 1);
-                        EquipmentIndex equipmentIndex = Run.instance.availableEquipmentDropList[Run.instance.spawnRng.RangeInt(0, Run.instance.availableEquipmentDropList.Count)].equipmentIndex;
-
-                        if (!EquipBlacklist.Value)
+                        
+                        while (true)
                         {
-                            foreach (EquipmentIndex item in EquipmentBlacklist)
+                            EquipmentIndex equipmentIndex = allEquips[Run.instance.spawnRng.RangeInt(0, allEquips.Count)];
+
+                            // Custom Equip Blacklist
+                            string[] customEquiplist = CustomEquipBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                            bool flag = true;
+                            foreach (string equip in customEquiplist)
                             {
-                                if (equipmentIndex == item)
+                                int x = 0;
+                                if (Int32.TryParse(equip, out x))
                                 {
-                                    equipmentIndex = EquipmentIndex.Fruit; // default to fruit.
-                                    break;
+                                    if (inventory.GetEquipmentIndex() == (EquipmentIndex)x)
+                                    {
+                                        flag = false;
+                                        break;
+                                    }
                                 }
                             }
+
+                            if (!EquipBlacklist.Value)
+                            {
+                                // Hard blacklisted
+                                foreach (EquipmentIndex item in EquipmentBlacklist)
+                                {
+                                    if (equipmentIndex == item)
+                                    {
+                                        flag = false;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (flag == true)
+                            {
+                                inventory.SetEquipmentIndex(equipmentIndex);
+                                break;
+                            }
                         }
-
-
-                        inventory.SetEquipmentIndex(equipmentIndex);
                     }
                 }
-
+                
                 multiplier(inventory);
                 blacklist(inventory);
 
@@ -595,21 +658,7 @@ namespace BaddiesWithItems
                     inventory.ResetItem(((ItemIndex)x));
                 }
             }
-
-            // Custom Equip Blacklist
-            string[] customEquiplist = CustomEquipBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string equip in customEquiplist)
-            {
-                int x = 0;
-                if (Int32.TryParse(equip, out x))
-                {
-                    if(inventory.GetEquipmentIndex() == (EquipmentIndex)x)
-                    {
-                        inventory.SetEquipmentIndex(EquipmentIndex.None);
-                    }
-                }
-            }
+ 
         }
     }
 
