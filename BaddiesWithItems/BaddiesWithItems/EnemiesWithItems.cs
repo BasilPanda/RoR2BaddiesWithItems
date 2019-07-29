@@ -256,28 +256,15 @@ namespace BaddiesWithItems
             (EquipmentIndex)1,
             (EquipmentIndex)2,
             (EquipmentIndex)3,
-            (EquipmentIndex)4,
-            (EquipmentIndex)5,
-            (EquipmentIndex)6,
-            (EquipmentIndex)7,
-            (EquipmentIndex)8,
-            (EquipmentIndex)9,
-            (EquipmentIndex)10,
             (EquipmentIndex)11,
-            (EquipmentIndex)12,
             (EquipmentIndex)13,
             (EquipmentIndex)14,
-            (EquipmentIndex)15,
             (EquipmentIndex)16,
-            (EquipmentIndex)17,
             (EquipmentIndex)18,
             (EquipmentIndex)19,
             (EquipmentIndex)20,
             (EquipmentIndex)21,
-            (EquipmentIndex)22,
             (EquipmentIndex)23,
-            (EquipmentIndex)24,
-            (EquipmentIndex)25,
             (EquipmentIndex)26,
             (EquipmentIndex)27,
             (EquipmentIndex)28,
@@ -420,23 +407,8 @@ namespace BaddiesWithItems
                         while (true)
                         {
                             EquipmentIndex equipmentIndex = allEquips[Run.instance.spawnRng.RangeInt(0, allEquips.Count)];
-
-                            // Custom Equip Blacklist
-                            string[] customEquiplist = CustomEquipBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
+                            
                             bool flag = true;
-                            foreach (string equip in customEquiplist)
-                            {
-                                int x = 0;
-                                if (Int32.TryParse(equip, out x))
-                                {
-                                    if (inventory.GetEquipmentIndex() == (EquipmentIndex)x)
-                                    {
-                                        flag = false;
-                                        break;
-                                    }
-                                }
-                            }
 
                             if (!EquipBlacklist.Value)
                             {
@@ -659,6 +631,20 @@ namespace BaddiesWithItems
                 }
             }
  
+            // Custom Equip Blacklist
+            string[] customEquiplist = CustomEquipBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+   
+            foreach (string equip in customEquiplist)
+            {
+                int x = 0;
+                if (Int32.TryParse(equip, out x))
+                {
+                    if (inventory.GetEquipmentIndex() == (EquipmentIndex)x)
+                    {
+                        inventory.SetEquipmentIndex(EquipmentIndex.None);
+                    }
+                }
+            }
         }
     }
 
