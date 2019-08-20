@@ -162,7 +162,7 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 ## Changelog
 
-**v1.2.4**
+**v1.2.5**
 
 - Updated to most recent R2API
 
