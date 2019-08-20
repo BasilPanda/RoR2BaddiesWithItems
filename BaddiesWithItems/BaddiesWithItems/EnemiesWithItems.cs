@@ -7,7 +7,7 @@ using RoR2;
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.4")]
+    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.5")]
 
     public class EnemiesWithItems : BaseUnityPlugin
     {
@@ -286,7 +286,7 @@ namespace BaddiesWithItems
 
             Hooks.baddiesItems();
             Hooks.enemiesDrop();
-            Chat.AddMessage("EnemiesWithItems v1.2.4 Loaded!");
+            Chat.AddMessage("EnemiesWithItems v1.2.5 Loaded!");
         }
 
         public static void checkConfig(Inventory inventory, CharacterMaster master)

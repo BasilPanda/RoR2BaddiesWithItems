@@ -164,6 +164,10 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 **v1.2.4**
 
+- Updated to most recent R2API
+
+**v1.2.4**
+
 - Fixed equipment generation by including lunar equips
 - Changed how Gesture of the Drowned is handled in generation (runs should be harder as it will generate other lunar items more often)
 
