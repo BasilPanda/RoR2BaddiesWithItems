@@ -2,7 +2,9 @@
 ## By Basil
 A mod allows enemies to be spawned with items for a more difficult experience!
 
-**Now scales exponentially depending on the total number of items from players!**
+**Now compatible with Jarlyk's mods! Check them out [here](https://thunderstore.io/package/Jarlyk/)!**
+
+**Scales exponentially depending on the total number of items from players!**
 
 **Drop option added! Check config!**
 
@@ -165,6 +167,8 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 **v1.2.5**
 
 - Updated to most recent R2API
+- Changed main hook to IL
+- Now compatible with Jarlyk mods! Check them out [here](https://thunderstore.io/package/Jarlyk/)! 
 
 **v1.2.4**
 

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 
 namespace BaddiesWithItems
 {
@@ -13,148 +15,27 @@ namespace BaddiesWithItems
         // Enemies w/ items hook
         public static void baddiesItems()
         {
-            On.RoR2.CombatDirector.AttemptSpawnOnTarget += (orig, self, spawnTarget) =>
+            IL.RoR2.CombatDirector.AttemptSpawnOnTarget += il =>
             {
-                if (self.GetFieldValue<DirectorCard>("currentMonsterCard") == null)
+                int locComponent = 0;
+                var c = new ILCursor(il);
+                c.GotoNext(
+                    MoveType.After,
+                    i => i.MatchCallvirt("UnityEngine.GameObject", "GetComponent"),
+                    i => i.MatchStloc(out locComponent));
+                
+                c.Emit(OpCodes.Ldloc, locComponent);
+                c.EmitDelegate<Action<CharacterMaster>>(component =>
                 {
-                    self.InvokeMethod<DirectorCard>("PrepareNewMonsterWave", self.GetPropertyValue<WeightedSelection<DirectorCard>>("monsterCards").Evaluate(self.GetFieldValue<Xoroshiro128Plus>("rng").nextNormalizedFloat));
-                }
-                if (!spawnTarget)
-                {
-                    return false;
-                }
-                if ((float)self.GetFieldValue<int>("spawnCountInCurrentWave") >= CombatDirector.maximumNumberToSpawnBeforeSkipping)
-                {
-                    return false;
-                }
-                int cost = self.GetFieldValue<DirectorCard>("currentMonsterCard").cost;
-                int num = self.GetFieldValue<DirectorCard>("currentMonsterCard").cost;
-                int num2 = self.GetFieldValue<DirectorCard>("currentMonsterCard").cost;
-                CombatDirector.EliteTierDef eliteTierDef = self.GetFieldValue<CombatDirector.EliteTierDef>("currentActiveEliteTier");
-                EliteIndex eliteIndex = self.GetFieldValue<EliteIndex>("currentActiveEliteIndex");
-                num2 = (int)((float)num * self.GetFieldValue<CombatDirector.EliteTierDef>("currentActiveEliteTier").costMultiplier);
-                if ((float)num2 <= self.monsterCredit)
-                {
-                    num = num2;
-                    eliteTierDef = self.GetFieldValue<CombatDirector.EliteTierDef>("currentActiveEliteTier");
-                    eliteIndex = self.GetFieldValue<EliteIndex>("currentActiveEliteIndex");
-                }
-                else
-                {
-                    eliteTierDef = new CombatDirector.EliteTierDef
+                    // this is it
+                    if (Run.instance.stageClearCount >= EnemiesWithItems.StageReq.Value)
                     {
-                        costMultiplier = 1f,
-                        damageBoostCoefficient = 1f,
-                        healthBoostCoefficient = 1f,
-                        eliteTypes = new EliteIndex[]
-                        {
-                            EliteIndex.None
-                        }
-                    };
-                    eliteIndex = EliteIndex.None;
-                }
-                if (!self.GetFieldValue<DirectorCard>("currentMonsterCard").CardIsValid())
-                {
-                    return false;
-                }
-                if (self.monsterCredit < (float)num)
-                {
-                    return false;
-                }
-                if (self.skipSpawnIfTooCheap && (float)num2 * CombatDirector.maximumNumberToSpawnBeforeSkipping < self.monsterCredit)
-                {
-                    if (self.GetPropertyValue<int>("mostExpensiveMonsterCostInDeck") > num)
-                    {
-                        return false;
+                        CharacterMaster player = PlayerCharacterMasterController.instances[rand.Next(0, Run.instance.livingPlayerCount)].master;
+                        component.inventory.CopyItemsFrom(player.inventory);
+                        EnemiesWithItems.checkConfig(component.inventory, player);
                     }
-                }
-                SpawnCard spawnCard = self.GetFieldValue<DirectorCard>("currentMonsterCard").spawnCard;
-                DirectorPlacementRule directorPlacementRule = new DirectorPlacementRule
-                {
-                    placementMode = DirectorPlacementRule.PlacementMode.Approximate,
-                    spawnOnTarget = spawnTarget.transform,
-                    preventOverhead = self.GetFieldValue<DirectorCard>("currentMonsterCard").preventOverhead
-                };
-                DirectorCore.GetMonsterSpawnDistance(self.GetFieldValue<DirectorCard>("currentMonsterCard").spawnDistance, out directorPlacementRule.minDistance, out directorPlacementRule.maxDistance);
-                directorPlacementRule.minDistance *= self.spawnDistanceMultiplier;
-                directorPlacementRule.maxDistance *= self.spawnDistanceMultiplier;
-                DirectorSpawnRequest directorSpawnRequest = new DirectorSpawnRequest(spawnCard, directorPlacementRule, self.GetFieldValue<Xoroshiro128Plus>("rng"));
-                directorSpawnRequest.ignoreTeamMemberLimit = true;
-                directorSpawnRequest.teamIndexOverride = new TeamIndex?(TeamIndex.Monster);
-                GameObject gameObject = DirectorCore.instance.TrySpawnObject(directorSpawnRequest);
-                if (!gameObject)
-                {
-                    Debug.LogFormat("Spawn card {0} failed to spawn. Aborting cost procedures.", new object[]
-                    {
-            spawnCard
-                    });
-                    return false;
-                }
-                self.monsterCredit -= (float)num;
-                self.SetFieldValue("spawnCountInCurrentWave", self.GetFieldValue<int>("spawnCountInCurrentWave") + 1);
-                CharacterMaster component = gameObject.GetComponent<CharacterMaster>();
-                GameObject bodyObject = component.GetBodyObject();
-                if (!self.combatSquad && self.combatSquadPrefab)
-                {
-                    GameObject gameObject2 = UnityEngine.Object.Instantiate<GameObject>(self.combatSquadPrefab, self.dropPosition ? self.dropPosition.position : self.transform.position, Quaternion.identity);
-                    self.SetPropertyValue("combatSquad", gameObject2.GetComponent<CombatSquad>());
-                    NetworkServer.Spawn(gameObject2);
-                    Action<CombatSquad> action = self.GetFieldValue<Action<CombatSquad>>("onCombatSquadAddedServer");
-                    if (action != null)
-                    {
-                        action(self.combatSquad);
-                    }
-                }
-                if (self.combatSquad)
-                {
-                    self.combatSquad.AddMember(component);
-                }
-                float num3 = eliteTierDef.healthBoostCoefficient;
-                float damageBoostCoefficient = eliteTierDef.damageBoostCoefficient;
-                EliteDef eliteDef = EliteCatalog.GetEliteDef(eliteIndex);
-                EquipmentIndex equipmentIndex = (eliteDef != null) ? eliteDef.eliteEquipmentIndex : EquipmentIndex.None;
-                if (equipmentIndex != EquipmentIndex.None)
-                {
-                    component.inventory.SetEquipmentIndex(equipmentIndex);
-                }
-                if (self.combatSquad)
-                {
-                    int livingPlayerCount = Run.instance.livingPlayerCount;
-                    num3 *= Mathf.Pow((float)livingPlayerCount, 1f);
-                }
-
-                // this is it
-                if (Run.instance.stageClearCount >= EnemiesWithItems.StageReq.Value)
-                {
-                    CharacterMaster player = PlayerCharacterMasterController.instances[rand.Next(0, Run.instance.livingPlayerCount)].master;
-                    component.inventory.CopyItemsFrom(player.inventory);
-                    EnemiesWithItems.checkConfig(component.inventory, player);
-                }
-
-                component.inventory.GiveItem(ItemIndex.BoostHp, Mathf.RoundToInt((num3 - 1f) * 10f));
-                component.inventory.GiveItem(ItemIndex.BoostDamage, Mathf.RoundToInt((damageBoostCoefficient - 1f) * 10f));
-                DeathRewards component2 = bodyObject.GetComponent<DeathRewards>();
-                if (component2)
-                {
-                    component2.expReward = (uint)((float)num * self.expRewardCoefficient * Run.instance.compensatedDifficultyCoefficient);
-                    component2.goldReward = (uint)((float)num * self.expRewardCoefficient * 2f * Run.instance.compensatedDifficultyCoefficient);
-                }
-                if (self.spawnEffectPrefab && NetworkServer.active)
-                {
-                    Vector3 origin = gameObject.transform.position;
-                    CharacterBody component3 = bodyObject.GetComponent<CharacterBody>();
-                    if (component3)
-                    {
-                        origin = component3.corePosition;
-                    }
-                    EffectManager.instance.SpawnEffect(self.spawnEffectPrefab, new EffectData
-                    {
-                        origin = origin
-                    }, true);
-                }
-                return true;
+                });
             };
-
         }
 
         // Enemies drop hook
