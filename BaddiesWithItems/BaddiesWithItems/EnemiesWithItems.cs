@@ -7,18 +7,17 @@ using RoR2;
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.5")]
+    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.7")]
 
     public class EnemiesWithItems : BaseUnityPlugin
     {
+
         public static ConfigWrapper<bool> GenerateItems;
         public static ConfigWrapper<string> ItemMultiplier;
 
         public static ConfigWrapper<int> StageReq;
         public static ConfigWrapper<bool> InheritItems;
-
-        //public static ConfigWrapper<string> MaxItems;
-        //public static ConfigWrapper<string> ScaleAmount;
+        
         public static ConfigWrapper<string> Tier1GenCap;
         public static ConfigWrapper<string> Tier2GenCap;
         public static ConfigWrapper<string> Tier3GenCap;
@@ -31,6 +30,7 @@ namespace BaddiesWithItems
 
         public static ConfigWrapper<string> CustomItemBlacklist;
         public static ConfigWrapper<string> CustomEquipBlacklist;
+        public static ConfigWrapper<string> CustomItemCaps;
 
         public static ConfigWrapper<bool> ItemsBlacklist;
         public static ConfigWrapper<bool> Limiter;
@@ -51,21 +51,7 @@ namespace BaddiesWithItems
                 "GenerateItems",
                 "Toggles item generation for enemies.",
                 true);
-
-            /*
-            MaxItems = Config.Wrap(
-                "Generator Settings",
-                "MaxItems",
-                "Sets the cap for items to be generated. Max possible items generated + ScaleAmount * Stages Cleared + Avg # of Player Items / 2",
-                "5");
-
-            ScaleAmount = Config.Wrap(
-                "Generator Settings",
-                "ScaleAmount",
-                "Sets the scaling value to be added to the MaxItems cap. Every stage cleared will increase the max item cap by this value.",
-                "2");
-            */
-
+            
             Tier1GenCap = Config.Wrap(
                 "Generator Settings",
                 "Tier1GenCap",
@@ -209,6 +195,12 @@ namespace BaddiesWithItems
                "CustomEquipBlacklist",
                "Enter equipment ids separated by a comma and a space to blacklist certain equipments. ex) 1, 14, 13 \nEquip ids: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names",
                "");
+
+            CustomItemCaps = Config.Wrap(
+               "General Settings",
+               "CustomItemCaps",
+               "Enter item ids as X-Y separated by a comma and a space to apply caps to certain items. X is the item id and Y is the number cap. ex) 0-20, 1-5, 2-1",
+               "");
         }
 
         public static EquipmentIndex[] EquipmentBlacklist = new EquipmentIndex[]
@@ -218,10 +210,10 @@ namespace BaddiesWithItems
             EquipmentIndex.Lightning,
             EquipmentIndex.Scanner,
             EquipmentIndex.CommandMissile,
-            EquipmentIndex.LunarPotion, // no idea what this is but it has lunar on it :D
             EquipmentIndex.BurnNearby,
             EquipmentIndex.DroneBackup,
-            EquipmentIndex.Gateway
+            EquipmentIndex.Gateway,
+            EquipmentIndex.FireBallDash
         };
 
         public static ItemIndex[] ItemBlacklist = new ItemIndex[]
@@ -237,9 +229,10 @@ namespace BaddiesWithItems
         {
             ItemIndex.SprintWisp,
             ItemIndex.ExecuteLowHealthElite,
-            ItemIndex.TitanGoldDuringTP,
+            ItemIndex.TitanGoldDuringTP,            // Halcyon Seed
             ItemIndex.TreasureCache,
             ItemIndex.BossDamageBonus,
+            ItemIndex.ExtraLifeConsumed,
             ItemIndex.Feather,
             ItemIndex.Firework,
             ItemIndex.SprintArmor,
@@ -247,7 +240,11 @@ namespace BaddiesWithItems
             ItemIndex.GoldOnHit,
             ItemIndex.WardOnLevel,
             ItemIndex.BeetleGland,
-            ItemIndex.CrippleWardOnLevel
+            ItemIndex.CrippleWardOnLevel,
+            ItemIndex.TPHealingNova,
+            ItemIndex.LunarTrinket,                 // Beads of Fealty
+            ItemIndex.LunarPrimaryReplacement,      // Visions of Heresy
+            ItemIndex.BonusGoldPackOnKill           // Ghor's Tome
         };
 
         public static List<EquipmentIndex> allEquips = new List<EquipmentIndex>()
@@ -269,6 +266,10 @@ namespace BaddiesWithItems
             (EquipmentIndex)27,
             (EquipmentIndex)28,
             (EquipmentIndex)29,
+            (EquipmentIndex)30,
+            (EquipmentIndex)31,
+            (EquipmentIndex)32,
+            (EquipmentIndex)33,
         };
 
         public static float ConfigToFloat(string configline)
@@ -286,7 +287,7 @@ namespace BaddiesWithItems
 
             Hooks.baddiesItems();
             Hooks.enemiesDrop();
-            Chat.AddMessage("EnemiesWithItems v1.2.5 Loaded!");
+            Chat.AddMessage("EnemiesWithItems v1.2.7 Loaded!");
         }
 
         public static void checkConfig(Inventory inventory, CharacterMaster master)
@@ -616,32 +617,80 @@ namespace BaddiesWithItems
                     inventory.ResetItem(ItemIndex.AutoCastEquipment);
                     inventory.GiveItem(ItemIndex.AutoCastEquipment, 1);
                 }
-
+                if (inventory.GetItemCount(ItemIndex.NearbyDamageBonus) > 3)
+                {
+                    inventory.ResetItem(ItemIndex.NearbyDamageBonus);
+                    inventory.GiveItem(ItemIndex.NearbyDamageBonus, 3);
+                }
+                if(inventory.GetItemCount(ItemIndex.ShinyPearl) > Run.instance.stageClearCount)
+                {
+                    inventory.ResetItem(ItemIndex.ShinyPearl);
+                    inventory.GiveItem(ItemIndex.ShinyPearl, Run.instance.stageClearCount);
+                }
+                if(inventory.GetItemCount(ItemIndex.Pearl) > Run.instance.stageClearCount)
+                {
+                    inventory.ResetItem(ItemIndex.Pearl);
+                    inventory.GiveItem(ItemIndex.Pearl, Run.instance.stageClearCount);
+                }
+                if(inventory.GetItemCount(ItemIndex.Thorns) > 1)
+                {
+                    inventory.ResetItem(ItemIndex.Thorns);
+                    inventory.GiveItem(ItemIndex.Thorns, 1);
+                }
             }
 
+            customItem(inventory);
+            customEquip(inventory);
+            customItemCap(inventory);
+        }
+
+        public static void customEquip(Inventory inventory)
+        {
+            // Custom Equip Blacklist
+            string[] customEquiplist = CustomEquipBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string equip in customEquiplist)
+            {
+                if (Int32.TryParse(equip, out int x))
+                {
+                    if (inventory.GetEquipmentIndex() == (EquipmentIndex)x)
+                    {
+                        inventory.SetEquipmentIndex(EquipmentIndex.None);
+                    }
+                }
+            }
+        }
+
+        public static void customItem(Inventory inventory)
+        {
             // Custom Items Blacklist
             string[] customItemlist = CustomItemBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (string item in customItemlist)
             {
-                int x = 0;
-                if (Int32.TryParse(item, out x))
+                if (Int32.TryParse(item, out int x))
                 {
-                    inventory.ResetItem(((ItemIndex)x));
+                    inventory.ResetItem((ItemIndex)x);
                 }
             }
- 
-            // Custom Equip Blacklist
-            string[] customEquiplist = CustomEquipBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-   
-            foreach (string equip in customEquiplist)
+        }
+
+        public static void customItemCap(Inventory inventory)
+        {
+            // Custom item caps
+            string[] customItemCaps = CustomItemCaps.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string item in customItemCaps)
             {
-                int x = 0;
-                if (Int32.TryParse(equip, out x))
+                string[] temp = item.Split(new[] { '-' });
+                if (temp.Length == 2)
                 {
-                    if (inventory.GetEquipmentIndex() == (EquipmentIndex)x)
+                    if (Int32.TryParse(temp[0], out int itemId) && Int32.TryParse(temp[1], out int cap))
                     {
-                        inventory.SetEquipmentIndex(EquipmentIndex.None);
+                        if (inventory.GetItemCount((ItemIndex)itemId) > cap)
+                        {
+                            inventory.ResetItem((ItemIndex)itemId);
+                            inventory.GiveItem((ItemIndex)itemId, cap);
+                        }
                     }
                 }
             }

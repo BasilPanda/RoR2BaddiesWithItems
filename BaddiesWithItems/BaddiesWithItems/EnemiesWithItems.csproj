@@ -33,13 +33,13 @@
       <HintPath>H:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\core\Mono.Cecil.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil.Mdb">
-      <HintPath>H:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\patchers\BepInEx.MonoMod.Loader\Mono.Cecil.Mdb.dll</HintPath>
+      <HintPath>H:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\core\Mono.Cecil.Mdb.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil.Pdb">
-      <HintPath>H:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\patchers\BepInEx.MonoMod.Loader\Mono.Cecil.Pdb.dll</HintPath>
+      <HintPath>H:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\core\Mono.Cecil.Pdb.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil.Rocks">
-      <HintPath>H:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\patchers\BepInEx.MonoMod.Loader\Mono.Cecil.Rocks.dll</HintPath>
+      <HintPath>H:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\core\Mono.Cecil.Rocks.dll</HintPath>
     </Reference>
     <Reference Include="MonoMod">
       <HintPath>H:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\patchers\BepInEx.MonoMod.Loader\MonoMod.exe</HintPath>

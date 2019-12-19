@@ -28,7 +28,8 @@ namespace BaddiesWithItems
                 c.EmitDelegate<Action<CharacterMaster>>(component =>
                 {
                     // this is it
-                    if (Run.instance.stageClearCount >= EnemiesWithItems.StageReq.Value)
+                    int stageClearCount = Run.instance.stageClearCount;
+                    if (stageClearCount >= EnemiesWithItems.StageReq.Value - 1 && component != null)
                     {
                         CharacterMaster player = PlayerCharacterMasterController.instances[rand.Next(0, Run.instance.livingPlayerCount)].master;
                         component.inventory.CopyItemsFrom(player.inventory);
@@ -56,19 +57,19 @@ namespace BaddiesWithItems
                     {
                         if (EnemiesWithItems.Tier1Items.Value && ItemCatalog.tier1ItemList.Contains(item) && inventory.GetItemCount(item) > 0)
                         {
-                            tier1Inventory.Add(new PickupIndex(item));
+                            tier1Inventory.Add(PickupCatalog.FindPickupIndex(item));
                         }
                         else if (EnemiesWithItems.Tier2Items.Value && ItemCatalog.tier2ItemList.Contains(item) && inventory.GetItemCount(item) > 0)
                         {
-                            tier2Inventory.Add(new PickupIndex(item));
+                            tier2Inventory.Add(PickupCatalog.FindPickupIndex(item));
                         }
                         else if (EnemiesWithItems.Tier3Items.Value && ItemCatalog.tier3ItemList.Contains(item) && inventory.GetItemCount(item) > 0)
                         {
-                            tier3Inventory.Add(new PickupIndex(item));
+                            tier3Inventory.Add(PickupCatalog.FindPickupIndex(item));
                         }
                         else if (EnemiesWithItems.LunarItems.Value && ItemCatalog.lunarItemList.Contains(item) && inventory.GetItemCount(item) > 0)
                         {
-                            lunarTierInventory.Add(new PickupIndex(item));
+                            lunarTierInventory.Add(PickupCatalog.FindPickupIndex(item));
                         }
                     }
                     WeightedSelection<List<PickupIndex>> weightedSelection = new WeightedSelection<List<PickupIndex>>(8);

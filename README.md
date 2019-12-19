@@ -29,91 +29,6 @@ Please contact Basil#7379 on Discord for any issues or interests!
 **Please check the config file and edit accordingly for your personal experience!**
 **I highly recommend deleting the config file if you previously installed this mod so it can be updated with the most recent config layout.**
 
-
-### Default Config Settings
-
-[General Settings]
-
-* Sets the multiplier for items to be inherited/generated.
-ItemMultiplier = 1
-
-* Sets the minimum stage to be cleared before having enemies inherit/generate items.
-StageReq = 4
-
-* Toggles hard blacklisted items to be inherited/generated.
-BlacklistItems = false
-
-* Toggles certain items to be capped.
-Limiter = true
-
-* Toggles items to be dropped by enemies with items.
-DropItems = false
-
-* Sets the percent chance that an enemy drops one of their items. Default 0.1 means average 1 in a 1000 kills will result in a drop.
-DropChance = 0.1
-
-* Toggles Tier 1 (white) items to be inherited/generated.
-Tier1Items = true
-
-* Toggles Tier 2 (green) items to be inherited/generated.
-Tier2Items = true
-
-* Toggles Tier 3 (red) items to be inherited/generated.
-Tier3Items = true
-
-* Toggles Lunar (blue) items to be inherited/generated.
-LunarItems = true
-
-* Toggles Use items to be inherited/generated.
-EquipItems = false
-
-* Toggles hard blacklisted Use items to be inherited/generated. MOST BLACKLISTED USE ITEMS ARE UNDODGEABLE.
-EquipBlacklist = false
-
-* Enter items ids separated by a comma and a space to blacklist certain items. ex) 41, 23, 17
-[Item IDs](https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names)
-CustomBlacklist = 
-
-* Enter equipment ids separated by a comma and a space to blacklist certain equipments. ex) 1, 14, 13 
-CustomEquipBlacklist = 
-
-[Generator Settings]
-
-* Toggles item generation for enemies.
-GenerateItems = true
-
-* The multiplicative max item cap for generating Tier 1 (white) items.
-Tier1GenCap = 4
-
-* The multiplicative max item cap for generating Tier 2 (green) items.
-Tier2GenCap = 2
-
-* The multiplicative max item cap for generating Tier 3 (red) items.
-Tier3GenCap = 1
-
-* The multiplicative max item cap for generating Lunar (blue) items.
-LunarGenCap = 1
-
-* The percent chance for generating a Tier 1 (white) item.
-Tier1GenChance = 40
-
-* The percent chance for generating a Tier 2 (green) item.
-Tier2GenChance = 20
-
-* The percent chance for generating a Tier 3 (red) item.
-Tier3GenChance = 1
-
-* The percent chance for generating a Lunar (blue) item.
-LunarGenChance = 0.5
-
-* The percent chance for generating a Use item.
-EquipGenChance = 10
-
-[Inherit Settings]
-
-* Toggles enemies to randomly inherit items from a random player. Overrides Generator Settings.
-InheritItems = false
-
 ## Hard Blacklisted Items & Equips
 
 Bustling Fungus
@@ -130,6 +45,7 @@ Primordial Cube
 Radar Scanner
 Royal Capacitor
 The Back-up
+Volcanic Egg
 
 ## FAQ
 
@@ -149,20 +65,37 @@ Q: How do you calculate the item gen cap for item generation?
 
 A: Currently the way it is done is randomly selecting a value from 0 to the current stage * item gen cap, inclusively, for every item.
 
-Q: What items are being limited?
+Q: What items are being limited by default?
 
 A: The following items are limited and subject to change based on user complaints:
+
+These are capped at current stage number:
+Pearl
+Irradiant Pearl
 
 Brilliant Behemoth - Capped at 2 - 5.5m Radius
 Cautious Slug - Capped at 30 - 4600% Passive Health Regen
 Chronobauble - Capped at 1 - 60% slow for 1 second
+Focus Crystal - Capped at 3 - 45% Increased Damage
 Fuel Cell - Capped at 3 - ~30% Reduced Equipment CD (guesstimate)
 Gasoline - Capped at 2 - 16m Range & Burn for 225% Monster Base Damage
 Gesture of the Drowned - Capped at 1 - 50% Reduced Equipment CD
+Razor Wire - Capped at 1 - 25m Radius (this will suck for melee classes)
 Tougher Times - Capped at 7 - ~51% Dodge Chance
 Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 ## Changelog
+
+**v1.2.7**
+
+- Updated mod for Hidden Realms patch!
+- Added Custom Item Caps config!
+- Limited some of the new items, check above.
+- Blacklisted Volanic Egg
+
+**v1.2.6**
+
+- Updated mod for Skills 2.0 patch!
 
 **v1.2.5**
 

@@ -9,17 +9,6 @@ using UnityEngine.Events;
 namespace EnemiesWithItems
 {
     class UI : MonoBehaviour
-    {
-
-        public bool isOpen = false;
-        public bool hasInit;
-
-        void OnGUI()
-        {
-
-        }
-
-
-
+    { 
     }
 }
