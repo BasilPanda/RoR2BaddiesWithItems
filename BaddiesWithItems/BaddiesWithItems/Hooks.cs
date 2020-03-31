@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using RoR2;
+using RoR2.UI;
 using UnityEngine;
 using UnityEngine.Networking;
 using Mono.Cecil.Cil;
@@ -12,31 +13,23 @@ namespace BaddiesWithItems
     {
         private static System.Random rand = new System.Random();
 
-        // Enemies w/ items hook
+        // Enemies w/ items
         public static void baddiesItems()
         {
-            IL.RoR2.CombatDirector.AttemptSpawnOnTarget += il =>
+            SpawnCard.onSpawnedServerGlobal += itemAdder;
+        }
+
+        // no longer uses a hook and just activates whenever something spawns.
+        public static void itemAdder(SpawnCard.SpawnResult spawnResult)
+        {
+            CharacterMaster enemy = spawnResult.spawnedInstance ? spawnResult.spawnedInstance.GetComponent<CharacterMaster>() : null;
+            int stageClearCount = Run.instance.stageClearCount;
+            if (stageClearCount >= EnemiesWithItems.StageReq.Value - 1 && enemy != null)
             {
-                int locComponent = 0;
-                var c = new ILCursor(il);
-                c.GotoNext(
-                    MoveType.After,
-                    i => i.MatchCallvirt("UnityEngine.GameObject", "GetComponent"),
-                    i => i.MatchStloc(out locComponent));
-                
-                c.Emit(OpCodes.Ldloc, locComponent);
-                c.EmitDelegate<Action<CharacterMaster>>(component =>
-                {
-                    // this is it
-                    int stageClearCount = Run.instance.stageClearCount;
-                    if (stageClearCount >= EnemiesWithItems.StageReq.Value - 1 && component != null)
-                    {
-                        CharacterMaster player = PlayerCharacterMasterController.instances[rand.Next(0, Run.instance.livingPlayerCount)].master;
-                        component.inventory.CopyItemsFrom(player.inventory);
-                        EnemiesWithItems.checkConfig(component.inventory, player);
-                    }
-                });
-            };
+                CharacterMaster player = PlayerCharacterMasterController.instances[rand.Next(0, Run.instance.livingPlayerCount)].master;
+                enemy.inventory.CopyItemsFrom(player.inventory);
+                EnemiesWithItems.checkConfig(enemy.inventory, player);
+            }
         }
 
         // Enemies drop hook
@@ -98,6 +91,25 @@ namespace BaddiesWithItems
                 }
             };
 
+        }
+
+        // Enemy UI Item Display (Next to buff UI)
+        // Display certain items above enemy health bar.
+        // Use ItemIcons and hook into BuffDisplay.UpdateLayout
+        /*
+         * ItemIcon 
+         * 
+         */
+        public static void enemyUI()
+        {
+            On.RoR2.UI.BuffDisplay.UpdateLayout += (orig, t) =>
+            {
+                ItemIcon item = new ItemIcon();
+                item.SetItemIndex((ItemIndex)1,1);
+            };
+
+
+            
         }
     }
 }

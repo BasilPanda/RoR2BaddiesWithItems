@@ -7,200 +7,225 @@ using RoR2;
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.7")]
+    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.8")]
 
     public class EnemiesWithItems : BaseUnityPlugin
     {
 
-        public static ConfigWrapper<bool> GenerateItems;
-        public static ConfigWrapper<string> ItemMultiplier;
+        public static ConfigEntry<bool> GenerateItems;
+        public static ConfigEntry<string> ItemMultiplier;
 
-        public static ConfigWrapper<int> StageReq;
-        public static ConfigWrapper<bool> InheritItems;
+        public static ConfigEntry<int> StageReq;
+        public static ConfigEntry<bool> InheritItems;
         
-        public static ConfigWrapper<string> Tier1GenCap;
-        public static ConfigWrapper<string> Tier2GenCap;
-        public static ConfigWrapper<string> Tier3GenCap;
-        public static ConfigWrapper<string> LunarGenCap;
-        public static ConfigWrapper<string> Tier1GenChance;
-        public static ConfigWrapper<string> Tier2GenChance;
-        public static ConfigWrapper<string> Tier3GenChance;
-        public static ConfigWrapper<string> LunarGenChance;
-        public static ConfigWrapper<string> EquipGenChance;
+        public static ConfigEntry<string> Tier1GenCap;
+        public static ConfigEntry<string> Tier2GenCap;
+        public static ConfigEntry<string> Tier3GenCap;
+        public static ConfigEntry<string> LunarGenCap;
+        public static ConfigEntry<string> Tier1GenChance;
+        public static ConfigEntry<string> Tier2GenChance;
+        public static ConfigEntry<string> Tier3GenChance;
+        public static ConfigEntry<string> LunarGenChance;
+        public static ConfigEntry<string> EquipGenChance;
 
-        public static ConfigWrapper<string> CustomItemBlacklist;
-        public static ConfigWrapper<string> CustomEquipBlacklist;
-        public static ConfigWrapper<string> CustomItemCaps;
+        public static ConfigEntry<string> CustomItemBlacklist;
+        public static ConfigEntry<string> CustomEquipBlacklist;
+        public static ConfigEntry<string> CustomItemCaps;
 
-        public static ConfigWrapper<bool> ItemsBlacklist;
-        public static ConfigWrapper<bool> Limiter;
-        public static ConfigWrapper<bool> Tier1Items;
-        public static ConfigWrapper<bool> Tier2Items;
-        public static ConfigWrapper<bool> Tier3Items;
-        public static ConfigWrapper<bool> LunarItems;
-        public static ConfigWrapper<bool> EquipItems;
-        public static ConfigWrapper<bool> EquipBlacklist;
+        public static ConfigEntry<bool> ItemsBlacklist;
+        public static ConfigEntry<bool> Limiter;
+        public static ConfigEntry<bool> Tier1Items;
+        public static ConfigEntry<bool> Tier2Items;
+        public static ConfigEntry<bool> Tier3Items;
+        public static ConfigEntry<bool> LunarItems;
+        public static ConfigEntry<bool> EquipItems;
+        public static ConfigEntry<bool> EquipBlacklist;
 
-        public static ConfigWrapper<bool> DropItems;
-        public static ConfigWrapper<string> DropChance;
+        public static ConfigEntry<bool> DropItems;
+        public static ConfigEntry<string> DropChance;
 
         public void InitConfig()
         {
-            GenerateItems = Config.Wrap(
+            GenerateItems = Config.Bind(
                 "Generator Settings",
                 "GenerateItems",
-                "Toggles item generation for enemies.",
-                true);
+                true,
+                "Toggles item generation for enemies."
+                );
             
-            Tier1GenCap = Config.Wrap(
+            Tier1GenCap = Config.Bind(
                 "Generator Settings",
                 "Tier1GenCap",
-                "The multiplicative max item cap for generating Tier 1 (white) items.",
-                "4");
+                "4",
+                "The multiplicative max item cap for generating Tier 1 (white) items."
+                );
 
-            Tier2GenCap = Config.Wrap(
+            Tier2GenCap = Config.Bind(
                 "Generator Settings",
                 "Tier2GenCap",
-                "The multiplicative max item cap for generating Tier 2 (green) items.",
-                "2");
+                "2",
+                "The multiplicative max item cap for generating Tier 2 (green) items."
+                );
 
-            Tier3GenCap = Config.Wrap(
+            Tier3GenCap = Config.Bind(
                 "Generator Settings",
                 "Tier3GenCap",
-                "The multiplicative max item cap for generating Tier 3 (red) items.",
-                "1");
+                "1",
+                "The multiplicative max item cap for generating Tier 3 (red) items."
+                );
 
-            LunarGenCap = Config.Wrap(
+            LunarGenCap = Config.Bind(
                 "Generator Settings",
                 "LunarGenCap",
-                "The multiplicative max item cap for generating Lunar (blue) items.",
-                "1");
+                "1",
+                "The multiplicative max item cap for generating Lunar (blue) items."
+                );
 
-            Tier1GenChance = Config.Wrap(
+            Tier1GenChance = Config.Bind(
                 "Generator Settings",
                 "Tier1GenChance",
-                "The percent chance for generating a Tier 1 (white) item.",
-                "40");
+                "40",
+                "The percent chance for generating a Tier 1 (white) item."
+                );
 
-            Tier2GenChance = Config.Wrap(
+            Tier2GenChance = Config.Bind(
                 "Generator Settings",
                 "Tier2GenChance",
-                "The percent chance for generating a Tier 2 (green) item.",
-                "20");
+                "20",
+                "The percent chance for generating a Tier 2 (green) item."
+                );
 
-            Tier3GenChance = Config.Wrap(
+            Tier3GenChance = Config.Bind(
                 "Generator Settings",
                 "Tier3GenChance",
-                "The percent chance for generating a Tier 3 (red) item.",
-                "1");
+                "1",
+                "The percent chance for generating a Tier 3 (red) item."
+                );
 
-            LunarGenChance = Config.Wrap(
+            LunarGenChance = Config.Bind(
                 "Generator Settings",
                 "LunarGenChance",
-                "The percent chance for generating a Lunar (blue) item.",
-                "0.5");
+                "0.5",
+                "The percent chance for generating a Lunar (blue) item."
+                );
 
-            EquipGenChance = Config.Wrap(
+            EquipGenChance = Config.Bind(
                 "Generator Settings",
                 "EquipGenChance",
-                "The percent chance for generating a Use item.",
-                "10");
+                "10",
+                "The percent chance for generating a Use item."
+                );
 
-            InheritItems = Config.Wrap(
+            InheritItems = Config.Bind(
                 "Inherit Settings",
                 "InheritItems",
-                "Toggles enemies to randomly inherit items from a random player. Overrides Generator Settings.",
-                false);
+                false,
+                "Toggles enemies to randomly inherit items from a random player. Overrides Generator Settings."
+                );
 
-            ItemMultiplier = Config.Wrap(
+            ItemMultiplier = Config.Bind(
                 "General Settings",
                 "ItemMultiplier",
-                "Sets the multiplier for items to be inherited/generated.",
-                "1");
+                "1",
+                "Sets the multiplier for items to be inherited/generated.");
 
-            StageReq = Config.Wrap(
+            StageReq = Config.Bind(
                 "General Settings",
                 "StageReq",
-                "Sets the minimum stage to be cleared before having enemies inherit/generate items.",
-                4);
+                4,
+                "Sets the minimum stage to be cleared before having enemies inherit/generate items."
+                );
 
-            ItemsBlacklist = Config.Wrap(
+            ItemsBlacklist = Config.Bind(
                 "General Settings",
                 "BlacklistItems",
-                "Toggles hard blacklisted items to be inherited/generated.",
-                false);
+                false,
+                "Toggles hard blacklisted items to be inherited/generated."
+                );
 
-            Limiter = Config.Wrap(
+            Limiter = Config.Bind(
                 "General Settings",
                 "Limiter",
-                "Toggles certain items to be capped. For more information, check this mod's FAQ at the thunderstore!",
-                true);
+                true,
+                "Toggles certain items to be capped. For more information, check this mod's FAQ at the thunderstore!"
+                );
             
-            DropItems = Config.Wrap(
+            DropItems = Config.Bind(
                 "General Settings",
                 "DropItems",
-                "Toggles items to be dropped by enemies with items.",
-                false);
+                false,
+                "Toggles items to be dropped by enemies with items."
+                );
 
-            DropChance = Config.Wrap(
+            DropChance = Config.Bind(
                 "General Settings",
                 "DropChance",
-                "Sets the percent chance that an enemy drops one of their items. Default 0.1 means average 1 in a 1000 kills will result in a drop.",
-                "0.1");
+                "0.1",
+                "Sets the percent chance that an enemy drops one of their items. Default 0.1 means average 1 in a 1000 kills will result in a drop."
+                );
             
-            Tier1Items = Config.Wrap(
+            Tier1Items = Config.Bind(
                 "General Settings",
                 "Tier1Items",
-                "Toggles Tier 1 (white) items to be inherited/generated.",
-                true);
+                true,
+                "Toggles Tier 1 (white) items to be inherited/generated."
+                );
 
-            Tier2Items = Config.Wrap(
+            Tier2Items = Config.Bind(
                 "General Settings",
                 "Tier2Items",
-                "Toggles Tier 2 (green) items to be inherited/generated.",
-                true);
+                true,
+                "Toggles Tier 2 (green) items to be inherited/generated."
+                );
 
-            Tier3Items = Config.Wrap(
+            Tier3Items = Config.Bind(
                 "General Settings",
                 "Tier3Items",
-                "Toggles Tier 3 (red) items to be inherited/generated.",
-                true);
+                true,
+                "Toggles Tier 3 (red) items to be inherited/generated."
+                );
 
-            LunarItems = Config.Wrap(
+            LunarItems = Config.Bind(
                 "General Settings",
                 "LunarItems",
-                "Toggles Lunar (blue) items to be inherited/generated.",
-                true);
+                true,
+                "Toggles Lunar (blue) items to be inherited/generated."
+                );
 
-            EquipItems = Config.Wrap(
+            EquipItems = Config.Bind(
                 "General Settings",
                 "EquipItems",
-                "Toggles Use items to be inherited/generated.",
-                false);
+                false,
+                "Toggles Use items to be inherited/generated."
+                );
 
-            EquipBlacklist = Config.Wrap(
+            EquipBlacklist = Config.Bind(
                 "General Settings",
                 "EquipBlacklist",
-                "Toggles hard blacklisted Use items to be inherited/generated. MOST BLACKLISTED USE ITEMS ARE UNDODGEABLE.",
-                false);
+                false,
+                "Toggles hard blacklisted Use items to be inherited/generated. MOST BLACKLISTED USE ITEMS ARE UNDODGEABLE."
+                );
 
-            CustomItemBlacklist = Config.Wrap(
+            CustomItemBlacklist = Config.Bind(
                 "General Settings",
                 "CustomItemBlacklist",
-                "Enter items ids separated by a comma and a space to blacklist certain items. ex) 41, 23, 17 \nItem ids: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names",
-                "");
+                "",
+                "Enter items ids separated by a comma and a space to blacklist certain items. ex) 41, 23, 17 \nItem ids: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names"
+                );
 
-            CustomEquipBlacklist = Config.Wrap(
+            CustomEquipBlacklist = Config.Bind(
                "General Settings",
                "CustomEquipBlacklist",
-               "Enter equipment ids separated by a comma and a space to blacklist certain equipments. ex) 1, 14, 13 \nEquip ids: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names",
-               "");
+               "",
+               "Enter equipment ids separated by a comma and a space to blacklist certain equipments. ex) 1, 14, 13 \nEquip ids: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names"
+               );
 
-            CustomItemCaps = Config.Wrap(
+            CustomItemCaps = Config.Bind(
                "General Settings",
                "CustomItemCaps",
-               "Enter item ids as X-Y separated by a comma and a space to apply caps to certain items. X is the item id and Y is the number cap. ex) 0-20, 1-5, 2-1",
-               "");
+               "",
+               "Enter item ids as X-Y separated by a comma and a space to apply caps to certain items. X is the item id and Y is the number cap. ex) 0-20, 1-5, 2-1"
+               );
         }
 
         public static EquipmentIndex[] EquipmentBlacklist = new EquipmentIndex[]
@@ -287,7 +312,7 @@ namespace BaddiesWithItems
 
             Hooks.baddiesItems();
             Hooks.enemiesDrop();
-            Chat.AddMessage("EnemiesWithItems v1.2.7 Loaded!");
+            Chat.AddMessage("EnemiesWithItems v1.2.8 Loaded!");
         }
 
         public static void checkConfig(Inventory inventory, CharacterMaster master)
