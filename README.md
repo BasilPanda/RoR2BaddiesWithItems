@@ -1,8 +1,8 @@
 # Enemies With Items
 ## By Basil
 A mod allows enemies to be spawned with items for a more difficult experience!
-
-**Now compatible with Jarlyk's mods! Check them out [here](https://thunderstore.io/package/Jarlyk/)!**
+This mod differs from the Artifact of Evolution (give all monsters the same items every stage artifact) as it scales harder and it makes every enemy have different items.
+Can be played with the Artifact of Evolution for guaranteed items on every monster.
 
 **Scales exponentially depending on the total number of items from players!**
 
@@ -27,12 +27,13 @@ Please contact Basil#7379 on Discord for any issues or interests!
 2. Then go to \BepInEx\config and open com.Basil.EnemiesWithItems.cfg
 
 **Please check the config file and edit accordingly for your personal experience!**
-**I highly recommend deleting the config file if you previously installed this mod so it can be updated with the most recent config layout.**
 
 ## Hard Blacklisted Items & Equips
 
 Bustling Fungus
+Genesis Loop
 N'kuhana's Opinion
+Resonance Disc
 Sticky Bomb
 Stun Grenade
 Unstable Tesla Coil
@@ -43,9 +44,14 @@ Helfire Tincture
 Preon Accumulator
 Primordial Cube
 Radar Scanner
+Recycler
 Royal Capacitor
+Sawmerang
 The Back-up
 Volcanic Egg
+
+## Items of no use
+
 
 ## FAQ
 
@@ -65,13 +71,20 @@ Q: How do you calculate the item gen cap for item generation?
 
 A: Currently the way it is done is randomly selecting a value from 0 to the current stage * item gen cap, inclusively, for every item.
 
+Q: I want to see what the enemies have. How can I?
+
+A: I do not have a solution at the moment since every enemy will have their own unique inventory.
+
 Q: What items are being limited by default?
 
-A: The following items are limited and subject to change based on user complaints:
+A: Feel free to message me about item imbalance! 
+The following items blow are limited and subject to change based on user complaints:
 
 These are capped at current stage number:
-Pearl
+Death Mark
 Irradiant Pearl
+Pearl
+Repulsion Armor Plate
 
 Brilliant Behemoth - Capped at 2 - 5.5m Radius
 Cautious Slug - Capped at 30 - 4600% Passive Health Regen
@@ -86,16 +99,22 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 ## Changelog
 
+**v1.2.8**
+
+- Updated mod for the Artifacts update!
+- Limited Death Mark to current stage number.
+- Blacklisted some more stuff, check above.
+
 **v1.2.7**
 
-- Updated mod for Hidden Realms patch!
+- Updated mod for Hidden Realms update!
 - Added Custom Item Caps config!
 - Limited some of the new items, check above.
 - Blacklisted Volanic Egg
 
 **v1.2.6**
 
-- Updated mod for Skills 2.0 patch!
+- Updated mod for Skills 2.0 update!
 
 **v1.2.5**
 
@@ -122,7 +141,7 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 **v1.2.0**
 
-- Updated mod for the Scorched Acres patch!
+- Updated mod for the Scorched Acres update!
 - Added random enemy item drop setting (default to false)
 - Added item drop chance setting (default to 0.1%)
 - Enemy item generation scaling now increases exponentially instead of linearly after StageReq

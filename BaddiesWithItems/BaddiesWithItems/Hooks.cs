@@ -24,7 +24,7 @@ namespace BaddiesWithItems
         {
             CharacterMaster enemy = spawnResult.spawnedInstance ? spawnResult.spawnedInstance.GetComponent<CharacterMaster>() : null;
             int stageClearCount = Run.instance.stageClearCount;
-            if (stageClearCount >= EnemiesWithItems.StageReq.Value - 1 && enemy != null)
+            if (stageClearCount >= EnemiesWithItems.StageReq.Value - 1 && enemy != null && enemy.teamIndex == TeamIndex.Monster)
             {
                 CharacterMaster player = PlayerCharacterMasterController.instances[rand.Next(0, Run.instance.livingPlayerCount)].master;
                 enemy.inventory.CopyItemsFrom(player.inventory);

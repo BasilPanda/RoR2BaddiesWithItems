@@ -238,38 +238,46 @@ namespace BaddiesWithItems
             EquipmentIndex.BurnNearby,
             EquipmentIndex.DroneBackup,
             EquipmentIndex.Gateway,
-            EquipmentIndex.FireBallDash
+            EquipmentIndex.FireBallDash,
+            EquipmentIndex.Saw,
+            EquipmentIndex.Recycle
         };
 
         public static ItemIndex[] ItemBlacklist = new ItemIndex[]
         {
-            ItemIndex.StickyBomb,
-            ItemIndex.StunChanceOnHit,
-            ItemIndex.NovaOnHeal,
-            ItemIndex.ShockNearby,
-            ItemIndex.Mushroom
+            ItemIndex.StickyBomb,                   // Sticky Bomb
+            ItemIndex.StunChanceOnHit,              // Stun Grenade
+            ItemIndex.NovaOnHeal,                   // N'kuhana's Opinion
+            ItemIndex.ShockNearby,                  // Tesla Coil
+            ItemIndex.Mushroom,                     // Bustling Fungus
+            ItemIndex.ExplodeOnDeath,               // Genesis Loop
+            ItemIndex.LaserTurbine                  // Resonance Disc
         };
 
         public static ItemIndex[] ItemsNeverUsed = new ItemIndex[]
         {
-            ItemIndex.SprintWisp,
-            ItemIndex.ExecuteLowHealthElite,
+            ItemIndex.ExecuteLowHealthElite,        // Old Guillotine
             ItemIndex.TitanGoldDuringTP,            // Halcyon Seed
-            ItemIndex.TreasureCache,
-            ItemIndex.BossDamageBonus,
-            ItemIndex.ExtraLifeConsumed,
-            ItemIndex.Feather,
-            ItemIndex.Firework,
-            ItemIndex.SprintArmor,
-            ItemIndex.JumpBoost,
-            ItemIndex.GoldOnHit,
-            ItemIndex.WardOnLevel,
-            ItemIndex.BeetleGland,
-            ItemIndex.CrippleWardOnLevel,
-            ItemIndex.TPHealingNova,
+            ItemIndex.TreasureCache,                // Rusted Key
+            ItemIndex.BossDamageBonus,              // Armor-Piercing Rounds
+            ItemIndex.ExtraLifeConsumed,            
+            ItemIndex.Feather,                      // Hopoo Feather
+            ItemIndex.Firework,                     // Bundle of Fireworks
+            ItemIndex.SprintArmor,                  // Rose Buckler
+            ItemIndex.JumpBoost,                    // Wax Quail
+            ItemIndex.GoldOnHit,                    // Brittle Crown
+            ItemIndex.WardOnLevel,                  // Warbanner
+            ItemIndex.BeetleGland,                  // Queen's Gland
+            ItemIndex.CrippleWardOnLevel,           
+            ItemIndex.TPHealingNova,                // Lepton Daisy
             ItemIndex.LunarTrinket,                 // Beads of Fealty
             ItemIndex.LunarPrimaryReplacement,      // Visions of Heresy
-            ItemIndex.BonusGoldPackOnKill           // Ghor's Tome
+            ItemIndex.LunarUtilityReplacement,      // Strides of Heresy
+            ItemIndex.BonusGoldPackOnKill,          // Ghor's Tome
+            ItemIndex.Squid,                        // Squid Polyp
+            ItemIndex.SprintWisp,                   // Little Disciple
+            ItemIndex.RegenOnKill,                  // Fresh Meat
+            ItemIndex.FocusConvergence              // Focused Convergence
         };
 
         public static List<EquipmentIndex> allEquips = new List<EquipmentIndex>()
@@ -599,68 +607,93 @@ namespace BaddiesWithItems
                     inventory.ResetItem(item);
                 }
             }
+            int stageClearCount = Run.instance.stageClearCount;
             // Limiter
             if (Limiter.Value)
             {
+                // Tougher Times
                 if (inventory.GetItemCount(ItemIndex.Bear) > 7)
                 {
                     inventory.ResetItem(ItemIndex.Bear);
                     inventory.GiveItem(ItemIndex.Bear, 7);
                 }
+                // Cautious Slug
                 if (inventory.GetItemCount(ItemIndex.HealWhileSafe) > 30)
                 {
                     inventory.ResetItem(ItemIndex.HealWhileSafe);
                     inventory.GiveItem(ItemIndex.HealWhileSafe, 30);
                 }
+                // Fuel Cell
                 if (inventory.GetItemCount(ItemIndex.EquipmentMagazine) > 3)
                 {
                     inventory.ResetItem(ItemIndex.EquipmentMagazine);
                     inventory.GiveItem(ItemIndex.EquipmentMagazine, 3);
                 }
+                // Chronobauble
                 if (inventory.GetItemCount(ItemIndex.SlowOnHit) > 1)
                 {
                     inventory.ResetItem(ItemIndex.SlowOnHit);
                     inventory.GiveItem(ItemIndex.SlowOnHit, 1);
                 }
+                // Behemoth
                 if (inventory.GetItemCount(ItemIndex.Behemoth) > 2)
                 {
                     inventory.ResetItem(ItemIndex.Behemoth);
                     inventory.GiveItem(ItemIndex.Behemoth, 2);
                 }
+                // Tri-tip Dagger
                 if (inventory.GetItemCount(ItemIndex.BleedOnHit) > 3)
                 {
                     inventory.ResetItem(ItemIndex.BleedOnHit);
                     inventory.GiveItem(ItemIndex.BleedOnHit, 3);
                 }
+                // Gasoline
                 if (inventory.GetItemCount(ItemIndex.IgniteOnKill) > 2)
                 {
                     inventory.ResetItem(ItemIndex.IgniteOnKill);
                     inventory.GiveItem(ItemIndex.IgniteOnKill, 2);
                 }
+                // Gesture of the Drowned
                 if (inventory.GetItemCount(ItemIndex.AutoCastEquipment) > 1)
                 {
                     inventory.ResetItem(ItemIndex.AutoCastEquipment);
                     inventory.GiveItem(ItemIndex.AutoCastEquipment, 1);
                 }
+                // Focus Crystal
                 if (inventory.GetItemCount(ItemIndex.NearbyDamageBonus) > 3)
                 {
                     inventory.ResetItem(ItemIndex.NearbyDamageBonus);
                     inventory.GiveItem(ItemIndex.NearbyDamageBonus, 3);
                 }
-                if(inventory.GetItemCount(ItemIndex.ShinyPearl) > Run.instance.stageClearCount)
+                // Shiny Pearl: Increase all stats by 10%
+                if(inventory.GetItemCount(ItemIndex.ShinyPearl) > stageClearCount)
                 {
                     inventory.ResetItem(ItemIndex.ShinyPearl);
-                    inventory.GiveItem(ItemIndex.ShinyPearl, Run.instance.stageClearCount);
+                    inventory.GiveItem(ItemIndex.ShinyPearl, stageClearCount);
                 }
-                if(inventory.GetItemCount(ItemIndex.Pearl) > Run.instance.stageClearCount)
+                // Pearl: Increase hp by 10%
+                if(inventory.GetItemCount(ItemIndex.Pearl) > stageClearCount)
                 {
                     inventory.ResetItem(ItemIndex.Pearl);
-                    inventory.GiveItem(ItemIndex.Pearl, Run.instance.stageClearCount);
+                    inventory.GiveItem(ItemIndex.Pearl, stageClearCount);
                 }
+                // Razor Wire
                 if(inventory.GetItemCount(ItemIndex.Thorns) > 1)
                 {
                     inventory.ResetItem(ItemIndex.Thorns);
                     inventory.GiveItem(ItemIndex.Thorns, 1);
+                }
+                // Death Mark
+                if(inventory.GetItemCount(ItemIndex.DeathMark) > stageClearCount)
+                {
+                    inventory.ResetItem(ItemIndex.DeathMark);
+                    inventory.GiveItem(ItemIndex.DeathMark, stageClearCount);
+                }
+                // Repulsion Armor Plate
+                if (inventory.GetItemCount(ItemIndex.ArmorPlate) > stageClearCount)
+                {
+                    inventory.ResetItem(ItemIndex.DeathMark);
+                    inventory.GiveItem(ItemIndex.DeathMark, stageClearCount);
                 }
             }
 
