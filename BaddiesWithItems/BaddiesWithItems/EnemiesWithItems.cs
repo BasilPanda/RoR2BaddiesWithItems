@@ -7,11 +7,11 @@ using RoR2;
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.8")]
+    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.9")]
 
     public class EnemiesWithItems : BaseUnityPlugin
     {
-
+        #region Config Entries
         public static ConfigEntry<bool> GenerateItems;
         public static ConfigEntry<string> ItemMultiplier;
 
@@ -43,6 +43,7 @@ namespace BaddiesWithItems
 
         public static ConfigEntry<bool> DropItems;
         public static ConfigEntry<string> DropChance;
+        #endregion
 
         public void InitConfig()
         {
@@ -320,7 +321,7 @@ namespace BaddiesWithItems
 
             Hooks.baddiesItems();
             Hooks.enemiesDrop();
-            Chat.AddMessage("EnemiesWithItems v1.2.8 Loaded!");
+            Chat.AddMessage("EnemiesWithItems v1.2.9 Loaded!");
         }
 
         public static void checkConfig(Inventory inventory, CharacterMaster master)
