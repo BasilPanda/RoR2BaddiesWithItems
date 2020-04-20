@@ -99,6 +99,10 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 ## Changelog
 
+**v1.2.10**
+
+- Fixed not health and damage not scaling with players. Thanks to bang#4745 for reporting it!
+
 **v1.2.9**
 
 - Updated for 2.4.10 R2API.

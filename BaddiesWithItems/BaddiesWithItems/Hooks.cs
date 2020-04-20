@@ -27,7 +27,6 @@ namespace BaddiesWithItems
             if (stageClearCount >= EnemiesWithItems.StageReq.Value - 1 && enemy != null && enemy.teamIndex == TeamIndex.Monster)
             {
                 CharacterMaster player = PlayerCharacterMasterController.instances[rand.Next(0, Run.instance.livingPlayerCount)].master;
-                enemy.inventory.CopyItemsFrom(player.inventory);
                 EnemiesWithItems.checkConfig(enemy.inventory, player);
             }
         }
