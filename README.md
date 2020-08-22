@@ -50,9 +50,6 @@ Sawmerang
 The Back-up
 Volcanic Egg
 
-## Items of no use
-
-
 ## FAQ
 
 Q: I'm having heavy frame drops/lagging with ItemMulitplier set to 5 or greater! How do I fix this?
@@ -99,9 +96,14 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 ## Changelog
 
+**v1.2.11**
+
+- Updated for v1.0 of the game!
+- Updated for 2.5.7 R2API.
+
 **v1.2.10**
 
-- Fixed not health and damage not scaling with players. Thanks to bang#4745 for reporting it!
+- Fixed health and damage not scaling with players. Thanks to bang#4745 for reporting it!
 
 **v1.2.9**
 

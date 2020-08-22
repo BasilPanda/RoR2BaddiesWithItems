@@ -92,23 +92,6 @@ namespace BaddiesWithItems
 
         }
 
-        // Enemy UI Item Display (Next to buff UI)
-        // Display certain items above enemy health bar.
-        // Use ItemIcons and hook into BuffDisplay.UpdateLayout
-        /*
-         * ItemIcon 
-         * 
-         */
-        public static void enemyUI()
-        {
-            On.RoR2.UI.BuffDisplay.UpdateLayout += (orig, t) =>
-            {
-                ItemIcon item = new ItemIcon();
-                item.SetItemIndex((ItemIndex)1,1);
-            };
-
-
-            
-        }
+       
     }
 }

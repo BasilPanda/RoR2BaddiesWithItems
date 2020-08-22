@@ -7,7 +7,7 @@ using RoR2;
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.10")]
+    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "1.2.11")]
 
     public class EnemiesWithItems : BaseUnityPlugin
     {
@@ -278,7 +278,12 @@ namespace BaddiesWithItems
             ItemIndex.Squid,                        // Squid Polyp
             ItemIndex.SprintWisp,                   // Little Disciple
             ItemIndex.RegenOnKill,                  // Fresh Meat
-            ItemIndex.FocusConvergence              // Focused Convergence
+            ItemIndex.FocusConvergence,             // Focused Convergence
+            ItemIndex.MonstersOnShrineUse,          // Defiant Gouge
+            ItemIndex.ScrapWhite,                   // White Scrap
+            ItemIndex.ScrapGreen,                   // Green Scrap
+            ItemIndex.ScrapRed,                     // Red Scrap
+            ItemIndex.ScrapYellow                   // Yellow Scrap
         };
 
         public static List<EquipmentIndex> allEquips = new List<EquipmentIndex>()
@@ -304,6 +309,10 @@ namespace BaddiesWithItems
             (EquipmentIndex)31,
             (EquipmentIndex)32,
             (EquipmentIndex)33,
+            //(EquipmentIndex)34,           // Never used Recycler
+            (EquipmentIndex)35,
+            (EquipmentIndex)36,
+            (EquipmentIndex)37
         };
 
         public static float ConfigToFloat(string configline)
@@ -321,7 +330,7 @@ namespace BaddiesWithItems
 
             Hooks.baddiesItems();
             Hooks.enemiesDrop();
-            Chat.AddMessage("EnemiesWithItems v1.2.10 Loaded!");
+            Chat.AddMessage("EnemiesWithItems v1.2.11 Loaded!");
         }
 
         public static void checkConfig(Inventory inventory, CharacterMaster master)
