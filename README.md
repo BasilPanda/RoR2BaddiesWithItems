@@ -6,12 +6,12 @@ Can be played with the Artifact of Evolution for guaranteed items on every monst
 
 **Scales exponentially depending on the total number of items from players!**
 
-**Drop option added! Check config!**
+**Custom blacklists now accept item code names!**
+**Item drop option available! Check config!**
 
 Want the enemies to inherit player items? Possible with the InheritItems setting!
-*Will ignore generator settings.*
 
-By default, enemies will only start spawning with items after the 4th stage.
+By default, enemies will only start spawning with items **after the 5th stage (first loop).**
 
 Please contact Basil#7379 on Discord for any issues or interests!
 
@@ -66,7 +66,7 @@ A: It will randomly choose a player to inherit items from.
 
 Q: How do you calculate the item gen cap for item generation?
 
-A: Currently the way it is done is randomly selecting a value from 0 to the current stage * item gen cap, inclusively, for every item.
+A: Currently the way it is done is randomly selecting a value from 0 to the current stage * item gen cap, inclusively, for every item. 
 
 Q: I want to see what the enemies have. How can I?
 
@@ -95,6 +95,13 @@ Tougher Times - Capped at 7 - ~51% Dodge Chance
 Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 ## Changelog
+
+**v2.0.0**
+
+- Updated for the 1 Year Anniversary Update.
+- Code refactoring due to ItemIndex/EquipmentIndex changes.
+- Enemies should now properly be able to generate items on the first stage if StageReq is set to 0 or 1.
+- Custom blacklist configs now accept item code names!
 
 **v1.2.12**
 

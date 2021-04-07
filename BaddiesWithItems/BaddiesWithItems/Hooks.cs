@@ -4,8 +4,7 @@ using RoR2;
 using RoR2.UI;
 using UnityEngine;
 using UnityEngine.Networking;
-using Mono.Cecil.Cil;
-using MonoMod.Cil;
+using UnityEngine.SceneManagement;
 
 namespace BaddiesWithItems
 {
@@ -23,8 +22,12 @@ namespace BaddiesWithItems
         public static void itemAdder(SpawnCard.SpawnResult spawnResult)
         {
             CharacterMaster enemy = spawnResult.spawnedInstance ? spawnResult.spawnedInstance.GetComponent<CharacterMaster>() : null;
-            int stageClearCount = Run.instance.stageClearCount;
-            if (stageClearCount >= EnemiesWithItems.StageReq.Value - 1 && enemy != null && enemy.teamIndex == TeamIndex.Monster)
+            int stageClearCount = Run.instance.stageClearCount + 1;
+            if(EnemiesWithItems.StageReq.Value == 6 && SceneManager.GetActiveScene().name == "moon" && Run.instance.loopClearCount == 0)
+            {
+                return;
+            }
+            if (stageClearCount >= EnemiesWithItems.StageReq.Value && enemy != null && enemy.teamIndex == TeamIndex.Monster)
             {
                 // Fix living player count for using it with multitudes.
                 CharacterMaster player = PlayerCharacterMasterController.instances[rand.Next(0, Run.instance.livingPlayerCount)].master;

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
+using UnityEngine;
 using RoR2;
 
 namespace BaddiesWithItems
@@ -133,8 +135,8 @@ namespace BaddiesWithItems
             StageReq = Config.Bind(
                 "General Settings",
                 "StageReq",
-                4,
-                "Sets the minimum stage to be cleared before having enemies inherit/generate items."
+                6,
+                "Sets the stage where enemies start to inherit/generate items. If in the moon within first loop, it will not apply."
                 );
 
             ItemsBlacklist = Config.Bind(
@@ -229,6 +231,8 @@ namespace BaddiesWithItems
                );
         }
 
+        #region Lists
+
         public static EquipmentDef[] EquipmentBlacklist = new EquipmentDef[]
         {
             RoR2Content.Equipment.Blackhole,
@@ -241,7 +245,9 @@ namespace BaddiesWithItems
             RoR2Content.Equipment.Gateway,
             RoR2Content.Equipment.FireBallDash,
             RoR2Content.Equipment.Saw,
-            RoR2Content.Equipment.Recycle
+            RoR2Content.Equipment.Recycle,
+            RoR2Content.Equipment.OrbitalLaser,     // EQUIPMENT_ORBITALLASER_NAME
+            RoR2Content.Equipment.Enigma,           // EQUIPMENT_ENIGMA_NAME
         };
 
         public static ItemDef[] ItemBlacklist = new ItemDef[]
@@ -287,34 +293,38 @@ namespace BaddiesWithItems
             RoR2Content.Items.RoboBallBuddy,                // New Minions.
         };
 
-        public static List<EquipmentIndex> allEquips = new List<EquipmentIndex>()
+        public static EquipmentDef[] AffixEquips = new EquipmentDef[]
         {
-            (EquipmentIndex)0,
-            (EquipmentIndex)1,
-            (EquipmentIndex)2,
-            (EquipmentIndex)3,
-            (EquipmentIndex)11,
-            (EquipmentIndex)13,
-            (EquipmentIndex)14,
-            (EquipmentIndex)16,
-            (EquipmentIndex)18,
-            (EquipmentIndex)19,
-            (EquipmentIndex)20,
-            (EquipmentIndex)21,
-            (EquipmentIndex)23,
-            (EquipmentIndex)26,
-            (EquipmentIndex)27,
-            (EquipmentIndex)28,
-            (EquipmentIndex)29,
-            (EquipmentIndex)30,
-            (EquipmentIndex)31,
-            (EquipmentIndex)32,
-            (EquipmentIndex)33,
-            //(EquipmentIndex)34,           // Never used Recycler
-            (EquipmentIndex)35,
-            (EquipmentIndex)36,
-            (EquipmentIndex)37
+            RoR2Content.Equipment.AffixBlue,
+            RoR2Content.Equipment.AffixEcho,
+            RoR2Content.Equipment.AffixGold,
+            RoR2Content.Equipment.AffixHaunted,
+            RoR2Content.Equipment.AffixLunar,
+            RoR2Content.Equipment.AffixPoison,
+            RoR2Content.Equipment.AffixRed,
+            RoR2Content.Equipment.AffixWhite,
+            RoR2Content.Equipment.AffixYellow,
         };
+
+        public static Dictionary<ItemDef, int> LimitedItems = new Dictionary<ItemDef, int>()
+        {
+            { RoR2Content.Items.Bear, 7},                   // Tougher Times
+            { RoR2Content.Items.HealWhileSafe, 30},         // Cautious Slug
+            { RoR2Content.Items.EquipmentMagazine, 3},      // Fuel Cell
+            { RoR2Content.Items.SlowOnHit, 1},              // Chronobauble
+            { RoR2Content.Items.Behemoth, 2},               // Behemoth
+            { RoR2Content.Items.BleedOnHit, 3},             // Tri-tip Dagger
+            { RoR2Content.Items.IgniteOnKill, 2},           // Gasoline
+            { RoR2Content.Items.AutoCastEquipment, 1},      // Gesture of the Drowned
+            { RoR2Content.Items.NearbyDamageBonus, 3},      // Focus Crystal
+            { RoR2Content.Items.ShinyPearl, -1},            // Shiny Pearl 
+            { RoR2Content.Items.Pearl, -1},                 // Pearl
+            { RoR2Content.Items.Thorns, 1},                 // Razor Wire
+            { RoR2Content.Items.DeathMark, -1},             // Death Mark
+            { RoR2Content.Items.ArmorPlate, -1},            // Repulsion Armor Plate
+        };
+
+        #endregion
 
         public static float ConfigToFloat(string configline)
         {
@@ -343,8 +353,7 @@ namespace BaddiesWithItems
             else if (GenerateItems.Value) // Using generator instead
             {
                 resetInventory(inventory);
-                int scc = Run.instance.stageClearCount;
-
+                int scc = Run.instance.stageClearCount + 1;
                 // Get average # of items among all players.
                 int totalItems = 0;
                 foreach (PlayerCharacterMasterController player in PlayerCharacterMasterController.instances)
@@ -451,31 +460,31 @@ namespace BaddiesWithItems
                         
                         while (true)
                         {
-                            EquipmentIndex equipmentIndex = allEquips[Run.instance.spawnRng.RangeInt(0, allEquips.Count)];
-                            
+                            EquipmentDef equipmentDef = RoR2Content.Equipment.equipmentDefs[Run.instance.spawnRng.RangeInt(0, RoR2Content.Equipment.equipmentDefs.Length)]; 
+                            if (AffixEquips.Contains(equipmentDef))
+                            {
+                                break;
+                            }
                             bool flag = true;
 
                             if (!EquipBlacklist.Value)
                             {
                                 // Hard blacklisted
-                                foreach (EquipmentDef item in EquipmentBlacklist)
+                                if (EquipmentBlacklist.Contains(equipmentDef))
                                 {
-                                    if (equipmentIndex == item.equipmentIndex)
-                                    {
-                                        flag = false;
-                                        break;
-                                    }
+                                    flag = false;
                                 }
-                            }
+                            } 
                             if (flag == true)
                             {
-                                inventory.SetEquipmentIndex(equipmentIndex);
+                                inventory.SetEquipmentIndex(equipmentDef.equipmentIndex);
                                 break;
                             }
                         }
                     }
                 }
-                
+
+                // Debug.Log("Avg Player Items: " + avgItems + " Items Added: " + numItems);
                 multiplier(inventory);
                 blacklist(inventory);
 
@@ -622,95 +631,30 @@ namespace BaddiesWithItems
             // Limiter
             if (Limiter.Value)
             {
-                // Tougher Times
-                if (inventory.GetItemCount(RoR2Content.Items.Bear) > 7)
+                foreach(ItemDef item in LimitedItems.Keys)
                 {
-                    inventory.ResetItem(RoR2Content.Items.Bear);
-                    inventory.GiveItem(RoR2Content.Items.Bear, 7);
-                }
-                // Cautious Slug
-                if (inventory.GetItemCount(RoR2Content.Items.HealWhileSafe) > 30)
-                {
-                    inventory.ResetItem(RoR2Content.Items.HealWhileSafe);
-                    inventory.GiveItem(RoR2Content.Items.HealWhileSafe, 30);
-                }
-                // Fuel Cell
-                if (inventory.GetItemCount(RoR2Content.Items.EquipmentMagazine) > 3)
-                {
-                    inventory.ResetItem(RoR2Content.Items.EquipmentMagazine);
-                    inventory.GiveItem(RoR2Content.Items.EquipmentMagazine, 3);
-                }
-                // Chronobauble
-                if (inventory.GetItemCount(RoR2Content.Items.SlowOnHit) > 1)
-                {
-                    inventory.ResetItem(RoR2Content.Items.SlowOnHit);
-                    inventory.GiveItem(RoR2Content.Items.SlowOnHit, 1);
-                }
-                // Behemoth
-                if (inventory.GetItemCount(RoR2Content.Items.Behemoth) > 2)
-                {
-                    inventory.ResetItem(RoR2Content.Items.Behemoth);
-                    inventory.GiveItem(RoR2Content.Items.Behemoth, 2);
-                }
-                // Tri-tip Dagger
-                if (inventory.GetItemCount(RoR2Content.Items.BleedOnHit) > 3)
-                {
-                    inventory.ResetItem(RoR2Content.Items.BleedOnHit);
-                    inventory.GiveItem(RoR2Content.Items.BleedOnHit, 3);
-                }
-                // Gasoline
-                if (inventory.GetItemCount(RoR2Content.Items.IgniteOnKill) > 2)
-                {
-                    inventory.ResetItem(RoR2Content.Items.IgniteOnKill);
-                    inventory.GiveItem(RoR2Content.Items.IgniteOnKill, 2);
-                }
-                // Gesture of the Drowned
-                if (inventory.GetItemCount(RoR2Content.Items.AutoCastEquipment) > 1)
-                {
-                    inventory.ResetItem(RoR2Content.Items.AutoCastEquipment);
-                    inventory.GiveItem(RoR2Content.Items.AutoCastEquipment, 1);
-                }
-                // Focus Crystal
-                if (inventory.GetItemCount(RoR2Content.Items.NearbyDamageBonus) > 3)
-                {
-                    inventory.ResetItem(RoR2Content.Items.NearbyDamageBonus);
-                    inventory.GiveItem(RoR2Content.Items.NearbyDamageBonus, 3);
-                }
-                // Shiny Pearl: Increase all stats by 10%
-                if(inventory.GetItemCount(RoR2Content.Items.ShinyPearl) > stageClearCount)
-                {
-                    inventory.ResetItem(RoR2Content.Items.ShinyPearl);
-                    inventory.GiveItem(RoR2Content.Items.ShinyPearl, stageClearCount);
-                }
-                // Pearl: Increase hp by 10%
-                if(inventory.GetItemCount(RoR2Content.Items.Pearl) > stageClearCount)
-                {
-                    inventory.ResetItem(RoR2Content.Items.Pearl);
-                    inventory.GiveItem(RoR2Content.Items.Pearl, stageClearCount);
-                }
-                // Razor Wire
-                if(inventory.GetItemCount(RoR2Content.Items.Thorns) > 1)
-                {
-                    inventory.ResetItem(RoR2Content.Items.Thorns);
-                    inventory.GiveItem(RoR2Content.Items.Thorns, 1);
-                }
-                // Death Mark
-                if(inventory.GetItemCount(RoR2Content.Items.DeathMark) > stageClearCount)
-                {
-                    inventory.ResetItem(RoR2Content.Items.DeathMark);
-                    inventory.GiveItem(RoR2Content.Items.DeathMark, stageClearCount);
-                }
-                // Repulsion Armor Plate
-                if (inventory.GetItemCount(RoR2Content.Items.ArmorPlate) > stageClearCount)
-                {
-                    inventory.ResetItem(RoR2Content.Items.DeathMark);
-                    inventory.GiveItem(RoR2Content.Items.DeathMark, stageClearCount);
+                    if(LimitedItems[item] == -1)
+                    {
+                        limitItem(inventory, item, stageClearCount);
+                    } else
+                    {
+                        limitItem(inventory, item, LimitedItems[item]);
+                    }
                 }
             }
 
             customItem(inventory);
             customEquip(inventory);
             customItemCap(inventory);
+        }
+
+        public static void limitItem(Inventory inventory, ItemDef item, int cap)
+        {
+            if (inventory.GetItemCount(item) > cap)
+            {
+                inventory.ResetItem(item);
+                inventory.GiveItem(item, cap);
+            }
         }
 
         public static void customEquip(Inventory inventory)
