@@ -26,6 +26,7 @@ namespace BaddiesWithItems
             int stageClearCount = Run.instance.stageClearCount;
             if (stageClearCount >= EnemiesWithItems.StageReq.Value - 1 && enemy != null && enemy.teamIndex == TeamIndex.Monster)
             {
+                // Fix living player count for using it with multitudes.
                 CharacterMaster player = PlayerCharacterMasterController.instances[rand.Next(0, Run.instance.livingPlayerCount)].master;
                 EnemiesWithItems.checkConfig(enemy.inventory, player);
             }
