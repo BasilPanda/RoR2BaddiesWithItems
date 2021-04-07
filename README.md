@@ -99,6 +99,7 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 **v2.0.0**
 
 - Updated for the 1 Year Anniversary Update.
+- Changed default StageReq to 6 (after first loop). Should not generate if player is in first loop and going straight to the moon.
 - Code refactoring due to ItemIndex/EquipmentIndex changes.
 - Enemies should now properly be able to generate items on the first stage if StageReq is set to 0 or 1.
 - Custom blacklist configs now accept item code names!
