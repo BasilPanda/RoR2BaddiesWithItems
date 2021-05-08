@@ -289,7 +289,7 @@ namespace BaddiesWithItems
             RoR2Content.Items.ScrapGreen,                   // Green Scrap
             RoR2Content.Items.ScrapRed,                     // Red Scrap
             RoR2Content.Items.ScrapYellow,                  // Yellow Scrap
-            RoR2Content.Items.LunarBadLuck,                 // Purity
+            // RoR2Content.Items.LunarBadLuck,                 // Purity
             RoR2Content.Items.RoboBallBuddy,                // New Minions.
         };
 

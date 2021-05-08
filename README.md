@@ -96,6 +96,11 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 ## Changelog
 
+**v2.0.2**
+
+- Removed hard blacklisting of Visions and Strides of Heresy. Thanks to Cinder#5504 for reporting it!
+- Enemies in void field should now also have their intended items ontop of generated items. Thanks to NightLorde#6949 for reporting it!
+
 **v2.0.1**
 
 - Updated for R2API v3.0.30
