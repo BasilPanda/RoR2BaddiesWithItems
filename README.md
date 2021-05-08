@@ -98,6 +98,7 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 **v2.0.2**
 
+- Changed config text for blacklisting items to use codenames instead of ids.
 - Removed hard blacklisting of Visions and Strides of Heresy. Thanks to Cinder#5504 for reporting it!
 - Enemies in void field should now also have their intended items ontop of generated items. Thanks to NightLorde#6949 for reporting it!
 

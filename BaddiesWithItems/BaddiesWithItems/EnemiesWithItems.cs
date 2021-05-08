@@ -213,21 +213,21 @@ namespace BaddiesWithItems
                 "General Settings",
                 "CustomItemBlacklist",
                 "",
-                "Enter items ids/string name separated by a comma and a space to blacklist certain items. ex) 41, 23, 17 or PersonalShield, Syringe \nItem ids: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names"
+                "Enter item code name separated by a comma and a space to blacklist certain items. ex) PersonalShield, Syringe\nItem names: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names"
                 );
 
             CustomEquipBlacklist = Config.Bind(
                "General Settings",
                "CustomEquipBlacklist",
                "",
-               "Enter equipment ids separated by a comma and a space to blacklist certain equipments. ex) 1, 14, 13 \nEquip ids: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names"
+               "Enter equipment codenames separated by a comma and a space to blacklist certain equipments. ex) Saw, DroneBackup\nEquip names: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names"
                );
 
             CustomItemCaps = Config.Bind(
                "General Settings",
                "CustomItemCaps",
                "",
-               "Enter item ids as X-Y separated by a comma and a space to apply caps to certain items. X is the item id and Y is the number cap. ex) 0-20, 1-5, 2-1"
+               "Enter item codenames as X-Y separated by a comma and a space to apply caps to certain items. X is the item code name and Y is the number cap. ex) PersonalShield-20, Syringe-5"
                );
         }
 
@@ -548,6 +548,7 @@ namespace BaddiesWithItems
                 }
             }
 
+            inventory.CopyItemsFrom(master.inventory);
             multiplier(inventory);
 
             if (EquipItems.Value)
@@ -721,6 +722,18 @@ namespace BaddiesWithItems
                         {
                             inventory.ResetItem((ItemIndex)itemId);
                             inventory.GiveItem((ItemIndex)itemId, cap);
+                        }
+                    }
+                    else if (Int32.TryParse(temp[1], out cap))
+                    {
+                        ItemIndex index = ItemCatalog.FindItemIndex(temp[0]);
+                        if (index != ItemIndex.None)
+                        {
+                            if (inventory.GetItemCount(index) > cap)
+                            {
+                                inventory.ResetItem(index);
+                                inventory.GiveItem(index, cap);
+                            }
                         }
                     }
                 }
