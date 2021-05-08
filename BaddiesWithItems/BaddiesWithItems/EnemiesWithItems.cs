@@ -9,7 +9,7 @@ using RoR2;
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "2.0.0")]
+    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "2.0.2")]
 
     public class EnemiesWithItems : BaseUnityPlugin
     {
@@ -278,8 +278,8 @@ namespace BaddiesWithItems
             RoR2Content.Items.CrippleWardOnLevel,
             RoR2Content.Items.TPHealingNova,                // Lepton Daisy
             RoR2Content.Items.LunarTrinket,                 // Beads of Fealty
-            RoR2Content.Items.LunarPrimaryReplacement,      // Visions of Heresy
-            RoR2Content.Items.LunarUtilityReplacement,      // Strides of Heresy
+            //RoR2Content.Items.LunarPrimaryReplacement,      // Visions of Heresy
+            //RoR2Content.Items.LunarUtilityReplacement,      // Strides of Heresy
             RoR2Content.Items.BonusGoldPackOnKill,          // Ghor's Tome
             RoR2Content.Items.Squid,                        // Squid Polyp
             RoR2Content.Items.SprintWisp,                   // Little Disciple
@@ -341,7 +341,7 @@ namespace BaddiesWithItems
 
             Hooks.baddiesItems();
             Hooks.enemiesDrop();
-            Chat.AddMessage("EnemiesWithItems v2.0.0 Loaded!");
+            Chat.AddMessage("EnemiesWithItems v2.0.2 Loaded!");
         }
 
         public static void checkConfig(Inventory inventory, CharacterMaster master)
@@ -352,7 +352,7 @@ namespace BaddiesWithItems
             }
             else if (GenerateItems.Value) // Using generator instead
             {
-                resetInventory(inventory);
+                //resetInventory(inventory);
                 int scc = Run.instance.stageClearCount + 1;
                 // Get average # of items among all players.
                 int totalItems = 0;
@@ -460,7 +460,8 @@ namespace BaddiesWithItems
                         
                         while (true)
                         {
-                            EquipmentDef equipmentDef = RoR2Content.Equipment.equipmentDefs[Run.instance.spawnRng.RangeInt(0, RoR2Content.Equipment.equipmentDefs.Length)]; 
+                            EquipmentIndex eqIndex = EquipmentCatalog.equipmentList[Run.instance.spawnRng.RangeInt(0, EquipmentCatalog.equipmentList.Count)];
+                            EquipmentDef equipmentDef = EquipmentCatalog.GetEquipmentDef(eqIndex);
                             if (AffixEquips.Contains(equipmentDef))
                             {
                                 break;
@@ -491,7 +492,8 @@ namespace BaddiesWithItems
             }
             else
             {
-                resetInventory(inventory);
+                //resetInventory(inventory);
+                return;
             }
         }
 

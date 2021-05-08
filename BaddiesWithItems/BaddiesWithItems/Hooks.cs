@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using RoR2;
-using RoR2.UI;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 
 namespace BaddiesWithItems
