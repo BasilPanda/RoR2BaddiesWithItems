@@ -1,10 +1,10 @@
-# Enemies With Items
+﻿# Enemies With Items
 ## By Basil
 A mod allows enemies to be spawned with items for a more difficult experience!
 This mod differs from the Artifact of Evolution (give all monsters the same items every stage artifact) as it scales harder and it makes every enemy have different items.
 Can be played with the Artifact of Evolution for guaranteed items on every monster.
 
-**Scales exponentially depending on the total number of items from players!**
+**Now with a different scaling mode!**
 
 **Custom blacklists now accept item code names!**
 **Item drop option available! Check config!**
@@ -95,6 +95,11 @@ Tougher Times - Capped at 7 - ~51% Dodge Chance
 Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 ## Changelog
+
+**v2.0.3**
+
+- Fixed CustomBlacklist not working properly. Thanks to GG#2610 for reporting it!
+- Added an alternative scaling option for people who play with bigger lobbies than 4.
 
 **v2.0.2**
 
