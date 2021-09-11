@@ -9,7 +9,7 @@ using RoR2;
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "2.0.2")]
+    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "2.0.3")]
 
     public class EnemiesWithItems : BaseUnityPlugin
     {
@@ -341,7 +341,7 @@ namespace BaddiesWithItems
 
             Hooks.baddiesItems();
             Hooks.enemiesDrop();
-            Chat.AddMessage("EnemiesWithItems v2.0.2 Loaded!");
+            Chat.AddMessage("EnemiesWithItems v2.0.3 Loaded!");
         }
 
         public static void checkConfig(Inventory inventory, CharacterMaster master)
@@ -645,7 +645,7 @@ namespace BaddiesWithItems
                     }
                 }
             }
-
+            
             customItem(inventory);
             customEquip(inventory);
             customItemCap(inventory);
@@ -664,22 +664,26 @@ namespace BaddiesWithItems
         {
             // Custom Equip Blacklist
             string[] customEquiplist = CustomEquipBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
+            // Debug.Log("Current equipment: " + inventory.GetEquipment(0).equipmentDef.name);
             foreach (string equip in customEquiplist)
             {
                 if (Int32.TryParse(equip, out int x))
                 {
                     if (inventory.GetEquipmentIndex() == (EquipmentIndex)x)
                     {
+                        //Debug.Log("Removed equipment"); 
                         inventory.SetEquipmentIndex(EquipmentIndex.None);
                     }
-                    else
+                    
+                }
+                else
+                {
+                    EquipmentIndex index = EquipmentCatalog.FindEquipmentIndex(equip);
+                    //Debug.Log("Index: " + index + " Name: " + equip);
+                    if (index != EquipmentIndex.None)
                     {
-                        EquipmentIndex index = EquipmentCatalog.FindEquipmentIndex(equip);
-                        if (index != EquipmentIndex.None)
-                        {
-                            inventory.SetEquipmentIndex(EquipmentIndex.None);
-                        }
+                        //Debug.Log("Removed equipment");
+                        inventory.SetEquipmentIndex(EquipmentIndex.None);
                     }
                 }
             }
