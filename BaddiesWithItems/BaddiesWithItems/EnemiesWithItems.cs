@@ -16,6 +16,7 @@ namespace BaddiesWithItems
         #region Config Entries
         public static ConfigEntry<bool> GenerateItems;
         public static ConfigEntry<string> ItemMultiplier;
+        public static ConfigEntry<bool> Scaling;
 
         public static ConfigEntry<int> StageReq;
         public static ConfigEntry<bool> InheritItems;
@@ -55,7 +56,14 @@ namespace BaddiesWithItems
                 true,
                 "Toggles item generation for enemies."
                 );
-            
+
+            Scaling = Config.Bind(
+                "Generator Settings",
+                "ScaleAllPlayers",
+                true,
+                "Toggles how the mod balances potential item amount per enemy. True: Total items of all players False: Highest item count from players"
+            );
+
             Tier1GenCap = Config.Bind(
                 "Generator Settings",
                 "Tier1GenCap",
@@ -138,6 +146,7 @@ namespace BaddiesWithItems
                 6,
                 "Sets the stage where enemies start to inherit/generate items. If in the moon within first loop, it will not apply."
                 );
+
 
             ItemsBlacklist = Config.Bind(
                 "General Settings",
@@ -356,11 +365,31 @@ namespace BaddiesWithItems
                 int scc = Run.instance.stageClearCount + 1;
                 // Get average # of items among all players.
                 int totalItems = 0;
-                foreach (PlayerCharacterMasterController player in PlayerCharacterMasterController.instances)
+                // If scaling is true, then get the total items of all players in lobby
+                if(Scaling.Value)
                 {
-                    foreach (ItemIndex index in ItemCatalog.allItems)
+                    foreach (PlayerCharacterMasterController player in PlayerCharacterMasterController.instances)
                     {
-                        totalItems += player.master.inventory.GetItemCount(index);
+                        foreach (ItemIndex index in ItemCatalog.allItems)
+                        {
+                            totalItems += player.master.inventory.GetItemCount(index);
+                        }
+                    }
+                } 
+                // Get the highest item count of the players
+                else
+                {
+                    foreach (PlayerCharacterMasterController player in PlayerCharacterMasterController.instances)
+                    {
+                        int player_amount = 0;
+                        foreach (ItemIndex index in ItemCatalog.allItems)
+                        {
+                            player_amount += player.master.inventory.GetItemCount(index);
+                        }
+                        if(totalItems < player_amount)
+                        {
+                            totalItems = player_amount;
+                        }
                     }
                 }
                 int avgItems = (int)Math.Pow(scc,2) + totalItems;
