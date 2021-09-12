@@ -696,11 +696,14 @@ namespace BaddiesWithItems
                 else
                 {
                     EquipmentIndex index = EquipmentCatalog.FindEquipmentIndex(equip);
-                    //Debug.Log("Index: " + index + " Name: " + equip);
+                    Debug.Log("Index: " + index + " Name: " + equip);
                     if (index != EquipmentIndex.None)
                     {
                         //Debug.Log("Removed equipment");
-                        inventory.SetEquipmentIndex(EquipmentIndex.None);
+                        if(inventory.GetEquipmentIndex() == index)
+                        {
+                            inventory.SetEquipmentIndex(EquipmentIndex.None);
+                        }
                     }
                 }
             }
