@@ -77,35 +77,22 @@ Q: What items are being limited by default?
 A: Feel free to message me about item imbalance! 
 
 The following items blow are limited and subject to change based on user complaints:
-
 These are capped at current stage number:
 
 Death Mark
-
 Irradiant Pearl
-
 Pearl
-
 Repulsion Armor Plate
 
 Brilliant Behemoth - Capped at 2 - 5.5m Radius
-
 Cautious Slug - Capped at 30 - 4600% Passive Health Regen
-
 Chronobauble - Capped at 1 - 60% slow for 1 second
-
 Focus Crystal - Capped at 3 - 45% Increased Damage
-
 Fuel Cell - Capped at 3 - ~30% Reduced Equipment CD (guesstimate)
-
 Gasoline - Capped at 2 - 16m Range & Burn for 225% Monster Base Damage
-
 Gesture of the Drowned - Capped at 1 - 50% Reduced Equipment CD
-
 Razor Wire - Capped at 1 - 25m Radius (this will suck for melee classes)
-
 Tougher Times - Capped at 7 - ~51% Dodge Chance
-
 Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 ## Changelog
