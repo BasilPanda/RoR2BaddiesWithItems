@@ -96,6 +96,10 @@ Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
 
 ## Changelog
 
+**v2.0.4**
+
+- Changed alternative scaling option behavior to average item count instead of highest.
+
 **v2.0.3**
 
 - Fixed CustomBlacklist not working properly. Thanks to GG#2610 for reporting it!

@@ -9,7 +9,7 @@ using RoR2;
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "2.0.3")]
+    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "2.0.4")]
 
     public class EnemiesWithItems : BaseUnityPlugin
     {
@@ -61,7 +61,7 @@ namespace BaddiesWithItems
                 "Generator Settings",
                 "ScaleAllPlayers",
                 true,
-                "Toggles how the mod balances potential item amount per enemy. True: Total items of all players False: Highest item count from players"
+                "Toggles how the mod balances potential item amount per enemy. True: Total items of all players False: Average item count from players"
             );
 
             Tier1GenCap = Config.Bind(
@@ -350,7 +350,7 @@ namespace BaddiesWithItems
 
             Hooks.baddiesItems();
             Hooks.enemiesDrop();
-            Chat.AddMessage("EnemiesWithItems v2.0.3 Loaded!");
+            Chat.AddMessage("EnemiesWithItems v2.0.4 Loaded!");
         }
 
         public static void checkConfig(Inventory inventory, CharacterMaster master)
@@ -363,37 +363,25 @@ namespace BaddiesWithItems
             {
                 //resetInventory(inventory);
                 int scc = Run.instance.stageClearCount + 1;
-                // Get average # of items among all players.
                 int totalItems = 0;
-                // If scaling is true, then get the total items of all players in lobby
-                if(Scaling.Value)
+                foreach (PlayerCharacterMasterController player in PlayerCharacterMasterController.instances)
                 {
-                    foreach (PlayerCharacterMasterController player in PlayerCharacterMasterController.instances)
+                    foreach (ItemIndex index in ItemCatalog.allItems)
                     {
-                        foreach (ItemIndex index in ItemCatalog.allItems)
-                        {
-                            totalItems += player.master.inventory.GetItemCount(index);
-                        }
-                    }
-                } 
-                // Get the highest item count of the players
-                else
-                {
-                    foreach (PlayerCharacterMasterController player in PlayerCharacterMasterController.instances)
-                    {
-                        int player_amount = 0;
-                        foreach (ItemIndex index in ItemCatalog.allItems)
-                        {
-                            player_amount += player.master.inventory.GetItemCount(index);
-                        }
-                        if(totalItems < player_amount)
-                        {
-                            totalItems = player_amount;
-                        }
+                        totalItems += player.master.inventory.GetItemCount(index);
                     }
                 }
-                int avgItems = (int)Math.Pow(scc,2) + (totalItems / PlayerCharacterMasterController.instances.Count);
-
+                //
+                int maxItems = 0;
+                // If scaling is true, then use the total items of all players in lobby. ORIGINAL BEHAVIOR
+                if(Scaling.Value)
+                {
+                    maxItems = (int)Math.Pow(scc, 2) + totalItems;
+                } else
+                {
+                    // More balanced behavior, using the average of all players
+                    maxItems = (int)Math.Pow(scc, 2) + (totalItems / PlayerCharacterMasterController.instances.Count);
+                }
                 int numItems = 0;
                 int amount;
                 if (Tier1Items.Value)
@@ -403,60 +391,60 @@ namespace BaddiesWithItems
                         if (Util.CheckRoll(ConfigToFloat(Tier1GenChance.Value) + (scc - StageReq.Value)))
                         {
                             amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 2) * ConfigToFloat(Tier1GenCap.Value) + 1));
-                            if (numItems + amount > avgItems)
+                            if (numItems + amount > maxItems)
                             {
-                                amount = avgItems - numItems;
+                                amount = maxItems - numItems;
                             }
                             numItems += amount;
                             inventory.GiveItem(index, amount);
                         }
-                        if (numItems >= avgItems)
+                        if (numItems >= maxItems)
                         {
                             break;
                         }
                     }
                 }
-                if (Tier2Items.Value && numItems < avgItems)
+                if (Tier2Items.Value && numItems < maxItems)
                 {
                     foreach (ItemIndex index in ItemCatalog.tier2ItemList)
                     {
                         if (Util.CheckRoll(ConfigToFloat(Tier2GenChance.Value) + (scc - StageReq.Value)))
                         {
                             amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 1.8) * ConfigToFloat(Tier2GenCap.Value) + 1));
-                            if (numItems + amount > avgItems)
+                            if (numItems + amount > maxItems)
                             {
-                                amount = avgItems - numItems;
+                                amount = maxItems - numItems;
                             }
                             numItems += amount;
                             inventory.GiveItem(index, amount);
                         }
-                        if (numItems >= avgItems)
+                        if (numItems >= maxItems)
                         {
                             break;
                         }
                     }
                 }
-                if (Tier3Items.Value && numItems < avgItems)
+                if (Tier3Items.Value && numItems < maxItems)
                 {
                     foreach (ItemIndex index in ItemCatalog.tier3ItemList)
                     {
                         if (Util.CheckRoll(ConfigToFloat(Tier3GenChance.Value) + (scc - StageReq.Value)))
                         {
                             amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 1.5) * ConfigToFloat(Tier3GenCap.Value) + 1));
-                            if (numItems + amount > avgItems)
+                            if (numItems + amount > maxItems)
                             {
-                                amount = avgItems - numItems;
+                                amount = maxItems - numItems;
                             }
                             numItems += amount;
                             inventory.GiveItem(index, amount);
                         }
-                        if (numItems >= avgItems)
+                        if (numItems >= maxItems)
                         {
                             break;
                         }
                     }
                 }
-                if (LunarItems.Value && numItems < avgItems)
+                if (LunarItems.Value && numItems < maxItems)
                 {
                     foreach (ItemIndex index in ItemCatalog.lunarItemList)
                     {
@@ -467,14 +455,14 @@ namespace BaddiesWithItems
                         if (Util.CheckRoll(ConfigToFloat(LunarGenChance.Value) + (scc - StageReq.Value)))
                         {
                             amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 1.1) * ConfigToFloat(LunarGenCap.Value) + 1));
-                            if (numItems + amount > avgItems)
+                            if (numItems + amount > maxItems)
                             {
-                                amount = avgItems - numItems;
+                                amount = maxItems - numItems;
                             }
                             numItems += amount;
                             inventory.GiveItem(index, amount);
                         }
-                        if (numItems >= avgItems)
+                        if (numItems >= maxItems)
                         {
                             break;
                         }
