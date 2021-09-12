@@ -392,7 +392,7 @@ namespace BaddiesWithItems
                         }
                     }
                 }
-                int avgItems = (int)Math.Pow(scc,2) + totalItems;
+                int avgItems = (int)Math.Pow(scc,2) + (totalItems / PlayerCharacterMasterController.instances.Count);
 
                 int numItems = 0;
                 int amount;
