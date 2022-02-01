@@ -1,26 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Configuration;
-using UnityEngine;
 using RoR2;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace BaddiesWithItems
 {
     [BepInDependency("com.bepis.r2api")]
-    [BepInPlugin("com.Basil.EnemiesWithItems", "EnemiesWithItems", "2.0.4")]
-
+    [BepInPlugin("com.Basil." + ModIdentifier, "EnemiesWithItems", ModVer)]
     public class EnemiesWithItems : BaseUnityPlugin
     {
+        internal const string ModIdentifier = "EnemiesWithItems";
+        internal const string ModVer = "2.0.5";
+
+        public static EnemiesWithItems instance;
+
         #region Config Entries
+
         public static ConfigEntry<bool> GenerateItems;
         public static ConfigEntry<string> ItemMultiplier;
         public static ConfigEntry<bool> Scaling;
 
         public static ConfigEntry<int> StageReq;
         public static ConfigEntry<bool> InheritItems;
-        
+
         public static ConfigEntry<string> Tier1GenCap;
         public static ConfigEntry<string> Tier2GenCap;
         public static ConfigEntry<string> Tier3GenCap;
@@ -46,7 +50,8 @@ namespace BaddiesWithItems
 
         public static ConfigEntry<bool> DropItems;
         public static ConfigEntry<string> DropChance;
-        #endregion
+
+        #endregion Config Entries
 
         public void InitConfig()
         {
@@ -147,7 +152,6 @@ namespace BaddiesWithItems
                 "Sets the stage where enemies start to inherit/generate items. If in the moon within first loop, it will not apply."
                 );
 
-
             ItemsBlacklist = Config.Bind(
                 "General Settings",
                 "BlacklistItems",
@@ -161,7 +165,7 @@ namespace BaddiesWithItems
                 true,
                 "Toggles certain items to be capped. For more information, check this mod's FAQ at the thunderstore!"
                 );
-            
+
             DropItems = Config.Bind(
                 "General Settings",
                 "DropItems",
@@ -175,7 +179,7 @@ namespace BaddiesWithItems
                 "0.1",
                 "Sets the percent chance that an enemy drops one of their items. Default 0.1 means average 1 in a 1000 kills will result in a drop."
                 );
-            
+
             Tier1Items = Config.Bind(
                 "General Settings",
                 "Tier1Items",
@@ -326,14 +330,14 @@ namespace BaddiesWithItems
             { RoR2Content.Items.IgniteOnKill, 2},           // Gasoline
             { RoR2Content.Items.AutoCastEquipment, 1},      // Gesture of the Drowned
             { RoR2Content.Items.NearbyDamageBonus, 3},      // Focus Crystal
-            { RoR2Content.Items.ShinyPearl, -1},            // Shiny Pearl 
+            { RoR2Content.Items.ShinyPearl, -1},            // Shiny Pearl
             { RoR2Content.Items.Pearl, -1},                 // Pearl
             { RoR2Content.Items.Thorns, 1},                 // Razor Wire
             { RoR2Content.Items.DeathMark, -1},             // Death Mark
             { RoR2Content.Items.ArmorPlate, -1},            // Repulsion Armor Plate
         };
 
-        #endregion
+        #endregion Lists
 
         public static float ConfigToFloat(string configline)
         {
@@ -346,172 +350,11 @@ namespace BaddiesWithItems
 
         public void Awake()
         {
+            instance = this;
             InitConfig();
 
             Hooks.baddiesItems();
-            Hooks.enemiesDrop();
             Chat.AddMessage("EnemiesWithItems v2.0.4 Loaded!");
-        }
-
-        public static void checkConfig(Inventory inventory, CharacterMaster master)
-        {
-            if (InheritItems.Value) // inheritance
-            {
-                updateInventory(inventory, master);
-            }
-            else if (GenerateItems.Value) // Using generator instead
-            {
-                //resetInventory(inventory);
-                int scc = Run.instance.stageClearCount + 1;
-                int totalItems = 0;
-                foreach (PlayerCharacterMasterController player in PlayerCharacterMasterController.instances)
-                {
-                    foreach (ItemIndex index in ItemCatalog.allItems)
-                    {
-                        totalItems += player.master.inventory.GetItemCount(index);
-                    }
-                }
-                //
-                int maxItems = 0;
-                // If scaling is true, then use the total items of all players in lobby. ORIGINAL BEHAVIOR
-                if(Scaling.Value)
-                {
-                    maxItems = (int)Math.Pow(scc, 2) + totalItems;
-                } else
-                {
-                    // More balanced behavior, using the average of all players
-                    maxItems = (int)Math.Pow(scc, 2) + (totalItems / PlayerCharacterMasterController.instances.Count);
-                }
-                int numItems = 0;
-                int amount;
-                if (Tier1Items.Value)
-                {
-                    foreach (ItemIndex index in ItemCatalog.tier1ItemList)
-                    {
-                        if (Util.CheckRoll(ConfigToFloat(Tier1GenChance.Value) + (scc - StageReq.Value)))
-                        {
-                            amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 2) * ConfigToFloat(Tier1GenCap.Value) + 1));
-                            if (numItems + amount > maxItems)
-                            {
-                                amount = maxItems - numItems;
-                            }
-                            numItems += amount;
-                            inventory.GiveItem(index, amount);
-                        }
-                        if (numItems >= maxItems)
-                        {
-                            break;
-                        }
-                    }
-                }
-                if (Tier2Items.Value && numItems < maxItems)
-                {
-                    foreach (ItemIndex index in ItemCatalog.tier2ItemList)
-                    {
-                        if (Util.CheckRoll(ConfigToFloat(Tier2GenChance.Value) + (scc - StageReq.Value)))
-                        {
-                            amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 1.8) * ConfigToFloat(Tier2GenCap.Value) + 1));
-                            if (numItems + amount > maxItems)
-                            {
-                                amount = maxItems - numItems;
-                            }
-                            numItems += amount;
-                            inventory.GiveItem(index, amount);
-                        }
-                        if (numItems >= maxItems)
-                        {
-                            break;
-                        }
-                    }
-                }
-                if (Tier3Items.Value && numItems < maxItems)
-                {
-                    foreach (ItemIndex index in ItemCatalog.tier3ItemList)
-                    {
-                        if (Util.CheckRoll(ConfigToFloat(Tier3GenChance.Value) + (scc - StageReq.Value)))
-                        {
-                            amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 1.5) * ConfigToFloat(Tier3GenCap.Value) + 1));
-                            if (numItems + amount > maxItems)
-                            {
-                                amount = maxItems - numItems;
-                            }
-                            numItems += amount;
-                            inventory.GiveItem(index, amount);
-                        }
-                        if (numItems >= maxItems)
-                        {
-                            break;
-                        }
-                    }
-                }
-                if (LunarItems.Value && numItems < maxItems)
-                {
-                    foreach (ItemIndex index in ItemCatalog.lunarItemList)
-                    {
-                        if(index == RoR2Content.Items.AutoCastEquipment.itemIndex)
-                        {
-                            continue;
-                        }
-                        if (Util.CheckRoll(ConfigToFloat(LunarGenChance.Value) + (scc - StageReq.Value)))
-                        {
-                            amount = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 1.1) * ConfigToFloat(LunarGenCap.Value) + 1));
-                            if (numItems + amount > maxItems)
-                            {
-                                amount = maxItems - numItems;
-                            }
-                            numItems += amount;
-                            inventory.GiveItem(index, amount);
-                        }
-                        if (numItems >= maxItems)
-                        {
-                            break;
-                        }
-                    }
-                }
-                if (EquipItems.Value)
-                {
-                    if (Util.CheckRoll(ConfigToFloat(EquipGenChance.Value)))
-                    {
-                        inventory.ResetItem(RoR2Content.Items.AutoCastEquipment);
-                        inventory.GiveItem(RoR2Content.Items.AutoCastEquipment, 1);
-                        
-                        while (true)
-                        {
-                            EquipmentIndex eqIndex = EquipmentCatalog.equipmentList[Run.instance.spawnRng.RangeInt(0, EquipmentCatalog.equipmentList.Count)];
-                            EquipmentDef equipmentDef = EquipmentCatalog.GetEquipmentDef(eqIndex);
-                            if (AffixEquips.Contains(equipmentDef))
-                            {
-                                break;
-                            }
-                            bool flag = true;
-
-                            if (!EquipBlacklist.Value)
-                            {
-                                // Hard blacklisted
-                                if (EquipmentBlacklist.Contains(equipmentDef))
-                                {
-                                    flag = false;
-                                }
-                            } 
-                            if (flag == true)
-                            {
-                                inventory.SetEquipmentIndex(equipmentDef.equipmentIndex);
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                // Debug.Log("Avg Player Items: " + avgItems + " Items Added: " + numItems);
-                multiplier(inventory);
-                blacklist(inventory);
-
-            }
-            else
-            {
-                //resetInventory(inventory);
-                return;
-            }
         }
 
         public static void resetInventory(Inventory inventory)
@@ -566,7 +409,7 @@ namespace BaddiesWithItems
             }
 
             inventory.CopyItemsFrom(master.inventory);
-            multiplier(inventory);
+            MultiplyCurrentItems(inventory);
 
             if (EquipItems.Value)
             {
@@ -582,58 +425,67 @@ namespace BaddiesWithItems
                         break;
                     }
                 }
-
             }
 
-            blacklist(inventory);
+            RemoveBlacklistedItems(inventory);
         }
 
-        public static void multiplier(Inventory inventory)
+        //This is so so going to break with DLC
+        public static void MultiplyCurrentItems(Inventory inventory)
         {
             float itemMultiplier = ConfigToFloat(ItemMultiplier.Value);
             if (itemMultiplier != 1f)
             {
                 int count = 0;
-                if (Tier1Items.Value)
+                foreach (ItemIndex item in inventory.itemAcquisitionOrder)
                 {
-                    foreach (ItemIndex index in ItemCatalog.tier1ItemList)
+                    ItemDef itemDef = ItemCatalog.GetItemDef(item);
+                    switch (itemDef.tier)
                     {
-                        count = inventory.GetItemCount(index);
-                        inventory.ResetItem(index);
-                        inventory.GiveItem(index, (int)Math.Ceiling(count * itemMultiplier));
-                    }
-                }
-                if (Tier2Items.Value)
-                {
-                    foreach (ItemIndex index in ItemCatalog.tier2ItemList)
-                    {
-                        count = inventory.GetItemCount(index);
-                        inventory.ResetItem(index);
-                        inventory.GiveItem(index, (int)Math.Ceiling(count * itemMultiplier));
-                    }
-                }
-                if (Tier3Items.Value)
-                {
-                    foreach (ItemIndex index in ItemCatalog.tier3ItemList)
-                    {
-                        count = inventory.GetItemCount(index);
-                        inventory.ResetItem(index);
-                        inventory.GiveItem(index, (int)Math.Ceiling(count * itemMultiplier));
-                    }
-                }
-                if (LunarItems.Value)
-                {
-                    foreach (ItemIndex index in ItemCatalog.lunarItemList)
-                    {
-                        count = inventory.GetItemCount(index);
-                        inventory.ResetItem(index);
-                        inventory.GiveItem(index, (int)Math.Ceiling(count * itemMultiplier));
+                        case ItemTier.Tier1:
+                            if (Tier1Items.Value)
+                            {
+                                count = inventory.GetItemCount(itemDef);
+                                inventory.ResetItem(itemDef);
+                                inventory.GiveItem(itemDef, (int)Math.Ceiling(count * itemMultiplier));
+                            }
+                            break;
+
+                        case ItemTier.Tier2:
+                            if (Tier2Items.Value)
+                            {
+                                count = inventory.GetItemCount(itemDef);
+                                inventory.ResetItem(itemDef);
+                                inventory.GiveItem(itemDef, (int)Math.Ceiling(count * itemMultiplier));
+                            }
+                            break;
+
+                        case ItemTier.Tier3:
+                            if (Tier3Items.Value)
+                            {
+                                count = inventory.GetItemCount(itemDef);
+                                inventory.ResetItem(itemDef);
+                                inventory.GiveItem(itemDef, (int)Math.Ceiling(count * itemMultiplier));
+                            }
+                            break;
+
+                        case ItemTier.Lunar:
+                            if (LunarItems.Value)
+                            {
+                                count = inventory.GetItemCount(itemDef);
+                                inventory.ResetItem(itemDef);
+                                inventory.GiveItem(itemDef, (int)Math.Ceiling(count * itemMultiplier));
+                            }
+                            break;
+
+                        case ItemTier.Boss:
+                            break;
                     }
                 }
             }
         }
 
-        public static void blacklist(Inventory inventory)
+        public static void RemoveBlacklistedItems(Inventory inventory)
         {
             foreach (ItemDef item in ItemsNeverUsed)
             {
@@ -651,24 +503,25 @@ namespace BaddiesWithItems
             // Limiter
             if (Limiter.Value)
             {
-                foreach(ItemDef item in LimitedItems.Keys)
+                foreach (ItemDef item in LimitedItems.Keys)
                 {
-                    if(LimitedItems[item] == -1)
+                    if (LimitedItems[item] == -1)
                     {
-                        limitItem(inventory, item, stageClearCount);
-                    } else
+                        LimitItems(inventory, item, stageClearCount);
+                    }
+                    else
                     {
-                        limitItem(inventory, item, LimitedItems[item]);
+                        LimitItems(inventory, item, LimitedItems[item]);
                     }
                 }
             }
-            
-            customItem(inventory);
-            customEquip(inventory);
-            customItemCap(inventory);
+
+            ConfigItemBlacklist(inventory);
+            ConfigEquipBlacklist(inventory);
+            ConfigItemCaps(inventory);
         }
 
-        public static void limitItem(Inventory inventory, ItemDef item, int cap)
+        public static void LimitItems(Inventory inventory, ItemDef item, int cap)
         {
             if (inventory.GetItemCount(item) > cap)
             {
@@ -677,92 +530,65 @@ namespace BaddiesWithItems
             }
         }
 
-        public static void customEquip(Inventory inventory)
+        public static void ConfigEquipBlacklist(Inventory inventory)
         {
             // Custom Equip Blacklist
             string[] customEquiplist = CustomEquipBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            // Debug.Log("Current equipment: " + inventory.GetEquipment(0).equipmentDef.name);
-            foreach (string equip in customEquiplist)
+            foreach (string equipName in customEquiplist)
             {
-                if (Int32.TryParse(equip, out int x))
+                EquipmentDef equipmentDef = EquipmentCatalog.GetEquipmentDef(EquipmentCatalog.FindEquipmentIndex(equipName));
+                if (equipmentDef != null)
                 {
-                    if (inventory.GetEquipmentIndex() == (EquipmentIndex)x)
+                    if (inventory.GetEquipmentIndex() == equipmentDef.equipmentIndex)
                     {
-                        //Debug.Log("Removed equipment"); 
                         inventory.SetEquipmentIndex(EquipmentIndex.None);
                     }
-                    
-                }
-                else
-                {
-                    EquipmentIndex index = EquipmentCatalog.FindEquipmentIndex(equip);
-                    Debug.Log("Index: " + index + " Name: " + equip);
-                    if (index != EquipmentIndex.None)
-                    {
-                        //Debug.Log("Removed equipment");
-                        if(inventory.GetEquipmentIndex() == index)
-                        {
-                            inventory.SetEquipmentIndex(EquipmentIndex.None);
-                        }
-                    }
                 }
             }
         }
 
-        public static void customItem(Inventory inventory)
+        //From config file, find itemdef, remove items if entry exists
+        public static void ConfigItemBlacklist(Inventory inventory)
         {
-            // Custom Items Blacklist
             string[] customItemlist = CustomItemBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach (string item in customItemlist)
+            foreach (string itemName in customItemlist)
             {
-                if (Int32.TryParse(item, out int x))
+                ItemDef itemDef = ItemCatalog.GetItemDef(ItemCatalog.FindItemIndex(itemName));
+                if (itemDef != null)
                 {
-                    inventory.ResetItem((ItemIndex)x);
+                    inventory.ResetItem(itemDef);
                 }
-                else
+            }
+        }
+
+        //From config file, find itemdef, get item cap, remove items and set to cap if over itemcap
+        public static void ConfigItemCaps(Inventory inventory)
+        {
+            string[] customItemCaps = CustomItemCaps.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string itemCapEntry in customItemCaps)
+            {
+                string[] ItemCapPair = itemCapEntry.Split(new[] { '-' });
+                if (ItemCapPair.Length == 2)
                 {
-                    ItemIndex index = ItemCatalog.FindItemIndex(item);
-                    if (index != ItemIndex.None)
+                    ItemDef itemDef = ItemCatalog.GetItemDef(ItemCatalog.FindItemIndex(ItemCapPair[0]));
+                    if (itemDef != null && Int32.TryParse(ItemCapPair[1], out int cap))
                     {
-                        inventory.ResetItem(index);
+                        if (inventory.GetItemCount(itemDef) > cap)
+                        {
+                            inventory.ResetItem(itemDef);
+                            inventory.GiveItem(itemDef, cap);
+                        }
                     }
                 }
             }
         }
 
-        public static void customItemCap(Inventory inventory)
+        [ConCommand(commandName = "ewi_reloadconfig", flags = ConVarFlags.SenderMustBeServer, helpText = "Reloads the config file, server only.")]
+        private static void ReloadConfig(ConCommandArgs args)
         {
-            // Custom item caps
-            string[] customItemCaps = CustomItemCaps.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (string item in customItemCaps)
-            {
-                string[] temp = item.Split(new[] { '-' });
-                if (temp.Length == 2)
-                {
-                    if (Int32.TryParse(temp[0], out int itemId) && Int32.TryParse(temp[1], out int cap))
-                    {
-                        if (inventory.GetItemCount((ItemIndex)itemId) > cap)
-                        {
-                            inventory.ResetItem((ItemIndex)itemId);
-                            inventory.GiveItem((ItemIndex)itemId, cap);
-                        }
-                    }
-                    else if (Int32.TryParse(temp[1], out cap))
-                    {
-                        ItemIndex index = ItemCatalog.FindItemIndex(temp[0]);
-                        if (index != ItemIndex.None)
-                        {
-                            if (inventory.GetItemCount(index) > cap)
-                            {
-                                inventory.ResetItem(index);
-                                inventory.GiveItem(index, cap);
-                            }
-                        }
-                    }
-                }
-            }
+            Debug.LogWarning("Enemies with Items config reloaded!");
+            instance.Config.Reload();
         }
     }
-
 }

@@ -1,19 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using RoR2;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using RoR2;
 
 namespace BaddiesWithItems
 {
     public static class Hooks
     {
-        private static System.Random rand = new System.Random();
-
         // Enemies w/ items
         public static void baddiesItems()
         {
             SpawnCard.onSpawnedServerGlobal += itemAdder;
+            SpawnCard.onSpawnedServerGlobal += componentAdder;
+        }
+
+        private static void componentAdder(SpawnCard.SpawnResult obj)
+        {
+            if (EnemiesWithItems.DropItems.Value)
+            {
+                CharacterMaster enemy = obj.spawnedInstance ? obj.spawnedInstance.GetComponent<CharacterMaster>() : null;
+                enemy.GetBody().gameObject.AddComponent<EWIDeathRewards>();
+            }
         }
 
         // no longer uses a hook and just activates whenever something spawns.
@@ -21,19 +25,22 @@ namespace BaddiesWithItems
         {
             CharacterMaster enemy = spawnResult.spawnedInstance ? spawnResult.spawnedInstance.GetComponent<CharacterMaster>() : null;
             int stageClearCount = Run.instance.stageClearCount + 1;
-            if(EnemiesWithItems.StageReq.Value == 6 && SceneManager.GetActiveScene().name == "moon" && Run.instance.loopClearCount == 0)
+            if (EnemiesWithItems.StageReq.Value == 6 && SceneCatalog.mostRecentSceneDef.isFinalStage && Run.instance.loopClearCount == 0)
             {
                 return;
             }
             if (stageClearCount >= EnemiesWithItems.StageReq.Value && enemy != null && enemy.teamIndex == TeamIndex.Monster)
             {
                 // Fix living player count for using it with multitudes.
-                CharacterMaster player = PlayerCharacterMasterController.instances[rand.Next(0, Run.instance.livingPlayerCount)].master;
-                EnemiesWithItems.checkConfig(enemy.inventory, player);
+
+                //Xoroshiro throws off a range issue here at the beginning of the run, might have something to do with Run.instance.livingPlayerCount being zero in the very first frame.
+                CharacterMaster playerToCopyFrom = PlayerCharacterMasterController.instances[RoR2.Run.instance.nextStageRng.RangeInt(0, Run.instance.livingPlayerCount)].master;
+                ItemGeneration.GenerateItemsToInventory(enemy.inventory, playerToCopyFrom);
             }
         }
 
         // Enemies drop hook
+        /*
         public static void enemiesDrop()
         {
             On.RoR2.DeathRewards.OnKilledServer += (orig, self, damageInfo) =>
@@ -90,10 +97,7 @@ namespace BaddiesWithItems
                     }
                     PickupDropletController.CreatePickupDroplet(list[Run.instance.treasureRng.RangeInt(0, list.Count)], self.transform.position + Vector3.up * 1.5f, Vector3.up * 20f + self.transform.forward * 2f);
                 }
-            };
-
-        }
-
-       
+            }
+        }*/
     }
 }
