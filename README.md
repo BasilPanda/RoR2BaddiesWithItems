@@ -14,6 +14,7 @@ Want the enemies to inherit player items? Possible with the InheritItems setting
 By default, enemies will only start spawning with items **after the 5th stage (first loop).**
 
 Please contact Anreol#8231 on Discord for any issues or interests!
+
 Basil#7379 will *probably* be back when the the first DLC, Survivors of the Void, comes out.
 
 ## Installation
