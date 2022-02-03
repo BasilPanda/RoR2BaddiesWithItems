@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 using static BaddiesWithItems.EnemiesWithItems;
@@ -18,56 +19,26 @@ namespace BaddiesWithItems
         {
             PlayerCharacterMasterController.onPlayerAdded += onPlayerAdded;
             PlayerCharacterMasterController.onPlayerRemoved += onPlayerRemoved;
-
-            //Going to break with DLC
-            //TODO: OPTIMIZATION, item generation will be taken from here, instead of Generating items -> cleaning up if item is banned, why not remove banned items from here?
-            foreach (var item in ItemCatalog.tier1ItemList)
-            {
-                HG.ArrayUtils.ArrayAppend(ref allTier1Pickups, PickupCatalog.itemIndexToPickupIndex[(int)item]);
-            }
-            foreach (var item in ItemCatalog.tier2ItemList)
-            {
-                HG.ArrayUtils.ArrayAppend(ref allTier2Pickups, PickupCatalog.itemIndexToPickupIndex[(int)item]);
-            }
-            foreach (var item in ItemCatalog.tier3ItemList)
-            {
-                HG.ArrayUtils.ArrayAppend(ref allTier3Pickups, PickupCatalog.itemIndexToPickupIndex[(int)item]);
-            }
-            foreach (var item in ItemCatalog.lunarItemList)
-            {
-                HG.ArrayUtils.ArrayAppend(ref allTierLunarPickups, PickupCatalog.itemIndexToPickupIndex[(int)item]);
-            }
-            foreach (var item in EquipmentCatalog.equipmentList)
-            {
-                HG.ArrayUtils.ArrayAppend(ref allEquipmentPickups, PickupCatalog.equipmentIndexToPickupIndex[(int)item]);
-            }
         }
 
         private static void onPlayerRemoved(PlayerCharacterMasterController obj)
         {
             if (!NetworkServer.active) return;
-            instance.StartCoroutine(Rebuild(obj, false));
+            instance.StartCoroutine(RebuildPlayers(obj, false));
             //Rebuild(obj, true);
         }
 
         private static void onPlayerAdded(PlayerCharacterMasterController obj)
         {
             if (!NetworkServer.active) return;
-            instance.StartCoroutine(Rebuild(obj, false));
+            instance.StartCoroutine(RebuildPlayers(obj, false));
             //Rebuild(obj, false);
         }
 
         private static int _cachedPlayerCount;
         private static int _cachedTotalItemCount;
 
-        //This is asking for trouble with DLC
-        private static PickupIndex[] allTier1Pickups = new PickupIndex[0];
-        private static PickupIndex[] allTier2Pickups = new PickupIndex[0];
-        private static PickupIndex[] allTier3Pickups = new PickupIndex[0];
-        private static PickupIndex[] allTierLunarPickups = new PickupIndex[0];
-        private static PickupIndex[] allEquipmentPickups = new PickupIndex[0];
-
-        private static IEnumerator Rebuild(PlayerCharacterMasterController playerExcited, bool removing)
+        private static IEnumerator RebuildPlayers(PlayerCharacterMasterController playerExcited, bool removing)
         {
             yield return new WaitForEndOfFrame();
 
@@ -93,24 +64,26 @@ namespace BaddiesWithItems
             }
         }
 
-        private static PickupIndex EvaluatePickup(bool GenerateEquip)
+        //Future proofing for item tiers defs
+        private static ItemDef EvaluateItem()
         {
-            PickupIndex tier1 = Run.instance.treasureRng.NextElementUniform<PickupIndex>(allTier1Pickups);
-            PickupIndex tier2 = Run.instance.treasureRng.NextElementUniform<PickupIndex>(allTier2Pickups);
-            PickupIndex tier3 = Run.instance.treasureRng.NextElementUniform<PickupIndex>(allTier3Pickups);
-            PickupIndex tier4 = Run.instance.treasureRng.NextElementUniform<PickupIndex>(allTierLunarPickups);
-            WeightedSelection<PickupIndex> weightedSelection = new WeightedSelection<PickupIndex>(8);
-            weightedSelection.AddChoice(tier1, ConfigToFloat(Tier1GenChance.Value));
-            weightedSelection.AddChoice(tier2, ConfigToFloat(Tier2GenChance.Value));
-            weightedSelection.AddChoice(tier3, ConfigToFloat(Tier3GenChance.Value));
-            weightedSelection.AddChoice(tier4, ConfigToFloat(LunarGenChance.Value));
-
-            if (GenerateEquip)
+            WeightedSelection<ItemDef> weightedSelection = new WeightedSelection<ItemDef>(8);
+            for (int i = 0; i < EnemiesWithItems.AvailableItemTiers.Length; i++)
             {
-                PickupIndex equip = Run.instance.treasureRng.NextElementUniform<PickupIndex>(allEquipmentPickups);
-                weightedSelection.AddChoice(equip, ConfigToFloat(EquipGenChance.Value));
+                ItemDef itemDef = Run.instance.treasureRng.NextElementUniform<ItemDef>((from kvp in PickupLists.finalItemDefList where kvp.tier == AvailableItemTiers[i] select kvp).ToList());
+                weightedSelection.AddChoice(itemDef, ItemTierWeights[i]);
             }
 
+            return weightedSelection.Evaluate(Run.instance.treasureRng.nextNormalizedFloat);
+        }
+
+        //DLC will probably have tiered equipment... probably...
+        private static EquipmentDef EvaluateEquipment()
+        {
+            EquipmentDef tier1 = Run.instance.treasureRng.NextElementUniform<EquipmentDef>(PickupLists.finalEquipmentDefs);
+            WeightedSelection<EquipmentDef> weightedSelection = new WeightedSelection<EquipmentDef>(8);
+            weightedSelection.AddChoice(tier1, ConfigToFloat(EquipGenChance.Value));
+            weightedSelection.AddChoice(null, 1); //Epic fail!
             return weightedSelection.Evaluate(Run.instance.treasureRng.nextNormalizedFloat);
         }
 
@@ -118,128 +91,177 @@ namespace BaddiesWithItems
         {
             if (InheritItems.Value) // inheritance
             {
-                updateInventory(inventory, masterToCopyFrom);
-            }
-            else if (GenerateItems.Value) // Using generator instead
-            {
-                //resetInventory(inventory);
-
-                int scc = Run.instance.stageClearCount + 1;
-                int maxItemsToGenerate = 0;
-                int currentItemsGenerated = 0;
-
-                if (Scaling.Value) // If scaling is true, then use the total items of all players in lobby. ORIGINAL BEHAVIOR
-                    maxItemsToGenerate = (int)Math.Pow(scc, 2) + _cachedTotalItemCount;
-                else // More balanced behavior, using the average of all players
-                    maxItemsToGenerate = (int)Math.Pow(scc, 2) + (_cachedTotalItemCount / _cachedPlayerCount);
-
-                do
-                {
-                    bool generationIsValid = false;
-                    do
-                    {
-                        PickupDef evaluation = PickupCatalog.GetPickupDef(EvaluatePickup(inventory.currentEquipmentIndex == EquipmentIndex.None));
-                        if (evaluation.itemIndex == ItemIndex.None)
-                        {
-                            EquipmentDef equipmentDef = EquipmentCatalog.GetEquipmentDef(evaluation.equipmentIndex);
-                            generationIsValid = true; //Let's use it as a flag.
-                            if (AffixEquips.Contains(equipmentDef))
-                                generationIsValid = false;
-                            if (!EquipBlacklist.Value)
-                                if (EquipmentBlacklist.Contains(equipmentDef)) // Hard blacklisted
-                                    generationIsValid = false;
-
-                            if (generationIsValid)
-                            {
-                                inventory.ResetItem(RoR2Content.Items.AutoCastEquipment);
-                                inventory.GiveItem(RoR2Content.Items.AutoCastEquipment, 1);
-
-                                inventory.SetEquipmentIndex(evaluation.equipmentIndex);
-                            }
-                        }
-                        else
-                        {
-                            ItemDef itemDef = ItemCatalog.GetItemDef(evaluation.itemIndex);
-                            switch (itemDef.tier)
-                            {
-                                case ItemTier.Tier1:
-                                    if (Tier1Items.Value && inventory.GetTotalItemCountOfTier(ItemTier.Tier1) <= ConfigToFloat(Tier1GenCap.Value))
-                                    {
-                                        int amountToGive = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 2) * ConfigToFloat(Tier1GenCap.Value) + 1));
-                                        int real = (int)Mathf.Min(amountToGive, ConfigToFloat(Tier1GenCap.Value));
-                                        if (real > maxItemsToGenerate)
-                                        {
-                                            real = -maxItemsToGenerate;
-                                        }
-                                        inventory.GiveItem(itemDef, real);
-                                        currentItemsGenerated += real;
-                                        generationIsValid = true;
-                                    }
-                                    break;
-
-                                case ItemTier.Tier2:
-                                    if (Tier2Items.Value && inventory.GetTotalItemCountOfTier(ItemTier.Tier2) <= ConfigToFloat(Tier2GenCap.Value))
-                                    {
-                                        int amountToGive = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 2) * ConfigToFloat(Tier2GenCap.Value) + 1));
-                                        int real = (int)Mathf.Min(amountToGive, ConfigToFloat(Tier2GenCap.Value));
-                                        if (real > maxItemsToGenerate)
-                                        {
-                                            real = -maxItemsToGenerate;
-                                        }
-                                        inventory.GiveItem(itemDef, real);
-                                        currentItemsGenerated += real;
-                                        generationIsValid = true;
-                                    }
-                                    break;
-
-                                case ItemTier.Tier3:
-                                    if (Tier3Items.Value && inventory.GetTotalItemCountOfTier(ItemTier.Tier3) <= ConfigToFloat(Tier3GenCap.Value))
-                                    {
-                                        int amountToGive = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 2) * ConfigToFloat(Tier3GenCap.Value) + 1));
-                                        int real = (int)Mathf.Min(amountToGive, ConfigToFloat(Tier3GenCap.Value));
-                                        if (real > maxItemsToGenerate)
-                                        {
-                                            real = -maxItemsToGenerate;
-                                        }
-                                        inventory.GiveItem(itemDef, real);
-                                        currentItemsGenerated += real;
-                                        generationIsValid = true;
-                                    }
-                                    break;
-
-                                case ItemTier.Lunar:
-                                    if (LunarItems.Value && inventory.GetTotalItemCountOfTier(ItemTier.Lunar) <= ConfigToFloat(LunarGenCap.Value))
-                                    {
-                                        int amountToGive = UnityEngine.Random.Range(0, (int)(Math.Pow(scc, 2) * ConfigToFloat(LunarGenCap.Value) + 1));
-                                        int real = (int)Mathf.Min(amountToGive, ConfigToFloat(LunarGenCap.Value));
-                                        if (real > maxItemsToGenerate)
-                                        {
-                                            real = -maxItemsToGenerate;
-                                        }
-                                        inventory.GiveItem(itemDef, real);
-                                        currentItemsGenerated += real;
-                                        generationIsValid = true;
-                                    }
-                                    break;
-
-                                case ItemTier.Boss:
-                                    break;
-                            }
-                        }
-                    } while (!generationIsValid);
-                } while (currentItemsGenerated < maxItemsToGenerate);
-
-#if DEBUG
-                Debug.Log("Max Items: " + maxItemsToGenerate + " Items Added: " + currentItemsGenerated);
-#endif
-                MultiplyCurrentItems(inventory);
-                RemoveBlacklistedItems(inventory);
-            }
-            else
-            {
-                //resetInventory(inventory);
+                CleanInventoryDependingOnConfigAndCopyFromMaster(inventory, masterToCopyFrom);
                 return;
             }
+            if (GenerateItems.Value) // Using generator instead
+            {
+                if (PickupLists.finalItemDefList == null || PickupLists.finalItemDefList.Length <= 0)
+                {
+#if DEBUG
+                    Debug.LogError("Cannot generate items as finalItemDefList is empty or null.");
+#endif
+                    return;
+                }
+
+
+                int maxItemsToGenerate = 0;
+                // More balanced behavior, using the average of all players
+                maxItemsToGenerate = (int)Math.Pow(Run.instance.stageClearCount + 1, 2) + (_cachedTotalItemCount / _cachedPlayerCount);
+                if (Scaling.Value) // If scaling is true, then use the total items of all players in lobby. ORIGINAL BEHAVIOR
+                    maxItemsToGenerate = (int)Math.Pow(Run.instance.stageClearCount + 1, 2) + _cachedTotalItemCount;
+
+                int currentItemsGenerated = 0;
+                while (currentItemsGenerated <= maxItemsToGenerate)
+                {
+                    ItemDef evaluation = EvaluateItem();
+                    if (evaluation.itemIndex == ItemIndex.None)
+                        continue;
+                    int currentGenCap = 0;
+                    int currentItemTierCap = 0;
+                    for (int i = 0; i < AvailableItemTiers.Length; i++)
+                    {
+                        currentItemTierCap = ItemTierCaps[i];
+                        if (inventory.GetTotalItemCountOfTier(AvailableItemTiers[i]) > currentItemTierCap)
+                            continue;
+                    }
+                    int amountToGive = UnityEngine.Random.Range(0, maxItemsToGenerate + 1);
+                    float configItemMultiplier = ConfigToFloat(ItemMultiplier.Value);
+                    if (configItemMultiplier != 1)
+                        amountToGive = Mathf.CeilToInt(amountToGive * configItemMultiplier);
+                    if (amountToGive <= 0)
+                        continue;
+
+                    if (LimitedItemsDictionary.ContainsKey(evaluation) && Limiter.Value)
+                    {
+                        currentGenCap = ((from kvp in LimitedItemsDictionary where kvp.Key == evaluation select kvp.Value)).FirstOrDefault();
+                        if (currentGenCap <= 0)
+                            amountToGive = Run.instance.stageClearCount + 1;
+                    }
+                    else if (amountToGive > currentGenCap && currentGenCap > 0)
+                        amountToGive = currentGenCap;
+                    inventory.GiveItem(evaluation, amountToGive);
+                    currentItemsGenerated += amountToGive;
+#if DEBUG
+                    Debug.Log("A single gen cycle complete, currentItemsGenerated: " + currentItemsGenerated + " amountToGive: " + amountToGive + " currentGenCap: " + currentGenCap);
+#endif
+                };
+#if DEBUG
+                Debug.Log("Max Items: " + maxItemsToGenerate + " Amount of items Added: " + currentItemsGenerated);
+#endif
+            }
+
+            if (EnemiesWithItems.EquipItems.Value && inventory.currentEquipmentIndex == EquipmentIndex.None)
+            {
+                if (PickupLists.finalEquipmentDefs == null || PickupLists.finalEquipmentDefs.Length <= 0)
+                {
+#if DEBUG
+                    Debug.LogError("Cannot generate equips as equipmentDefs is empty or null.");
+#endif
+                    return;
+                }
+                EquipmentDef equipmentDef = EvaluateEquipment();
+                if (equipmentDef.equipmentIndex != EquipmentIndex.None)
+                {
+                    inventory.ResetItem(RoR2Content.Items.AutoCastEquipment);
+                    inventory.GiveItem(RoR2Content.Items.AutoCastEquipment);
+                    inventory.SetEquipmentIndex(equipmentDef.equipmentIndex);
+                }
+            }
+
+            return;
+        }
+
+        public static void LimitItems(Inventory inventory, ItemDef item, int cap)
+        {
+            if (inventory.GetItemCount(item) > cap)
+            {
+                inventory.ResetItem(item);
+                inventory.GiveItem(item, cap);
+            }
+        }
+
+        public static void CleanInventory(Inventory inventory)
+        {
+            foreach (ItemIndex item in inventory.itemAcquisitionOrder)
+            {
+                inventory.ResetItem(item);
+            }
+        }
+
+        public static void CleanInventoryDependingOnConfigAndCopyFromMaster(Inventory inventory, CharacterMaster master)
+        {
+            foreach (ItemIndex item in inventory.itemAcquisitionOrder)
+            {
+                foreach (ItemTier itemTier in AvailableItemTiers)
+                {
+                    if (ItemCatalog.GetItemDef(item).tier == itemTier)
+                    {
+                        inventory.ResetItem(item);
+                    }
+                }
+            }
+
+            inventory.CopyItemsFrom(master.inventory);
+            MultiplyCurrentItems(inventory);
+
+            if (EquipItems.Value)
+            {
+                inventory.ResetItem(RoR2Content.Items.AutoCastEquipment);
+                inventory.GiveItem(RoR2Content.Items.AutoCastEquipment, 1);
+                inventory.CopyEquipmentFrom(master.inventory);
+
+                foreach (EquipmentDef item in EquipmentBlackList)
+                {
+                    if (inventory.GetEquipmentIndex() == item.equipmentIndex)
+                    {
+                        inventory.SetEquipmentIndex(RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex); // default to Fuel Array
+                        break;
+                    }
+                }
+            }
+        }
+
+        public static void MultiplyCurrentItems(Inventory inventory)
+        {
+            float itemMultiplier = ConfigToFloat(ItemMultiplier.Value);
+            if (itemMultiplier != 1f)
+            {
+                foreach (ItemIndex item in inventory.itemAcquisitionOrder)
+                {
+                    ItemDef itemDef = ItemCatalog.GetItemDef(item);
+                    if (ItemBlackList.Contains(itemDef))
+                        continue;
+                    foreach (var itemTier in AvailableItemTiers)
+                    {
+                        if (itemDef.tier == itemTier)
+                        {
+                            int count = inventory.GetItemCount(itemDef);
+                            inventory.ResetItem(itemDef);
+                            inventory.GiveItem(itemDef, (int)Math.Ceiling(count * itemMultiplier));
+                        }
+                    }
+                }
+            }
+        }
+
+        [ConCommand(commandName = "ewi_midRunData", flags = ConVarFlags.SenderMustBeServer, helpText = "Shows data specific to the run. Only usable in a run.")]
+        private static void PrintMidRunData(ConCommandArgs args)
+        {
+            if (!Run.instance)
+            {
+                Debug.LogWarning("Cannot use command, you are not in a run!");
+                return;
+            }
+
+            StringBuilder bobTheBuilder = new StringBuilder();
+            bobTheBuilder.AppendLine("Cached total item count: " + _cachedTotalItemCount);
+            bobTheBuilder.AppendLine("Cached player count: " + _cachedPlayerCount);
+            if (Scaling.Value) // If scaling is true, then use the total items of all players in lobby. ORIGINAL BEHAVIOR
+                bobTheBuilder.Append("Max Items To Generate: " + (int)Math.Pow(Run.instance.stageClearCount + 1, 2) + _cachedTotalItemCount);
+            else // More balanced behavior, using the average of all players
+                bobTheBuilder.Append("Max Items To Generate: " + (int)Math.Pow(Run.instance.stageClearCount + 1, 2) + (_cachedTotalItemCount / _cachedPlayerCount));
+            Debug.Log(bobTheBuilder.ToString());
         }
     }
 }

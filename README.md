@@ -17,7 +17,7 @@ Please contact Basil#7379 on Discord for any issues or interests!
 
 ## Installation
 1. Install [BepInEx Mod Pack](https://thunderstore.io/package/bbepis/BepInExPack/)
-2. Install [R2API](https://thunderstore.io/package/tristanmcpherson/R2API/)
+2. Install [MMHookGenPatcher](https://thunderstore.io/package/RiskofThunder/HookGenPatcher/)
 3. Download the latest EnemiesWithItems.dll [here](https://thunderstore.io/package/BasilPanda/EnemiesWithItems/).
 4. Move EnemiesWithItems.dll to your \BepInEx\plugins folder
 
@@ -28,78 +28,61 @@ Please contact Basil#7379 on Discord for any issues or interests!
 
 **Please check the config file and edit accordingly for your personal experience!**
 
-## Hard Blacklisted Items & Equips
-
-Items:
-- Bustling Fungus
-- Genesis Loop
-- N'kuhana's Opinion
-- Resonance Disc
-- Sticky Bomb
-- Stun Grenade
-- Unstable Tesla Coil
-
-Equips:
-- Disposable Missile Launcher
-- Eccentric Vase
-- Helfire Tincture
-- Preon Accumulator
-- Primordial Cube
-- Radar Scanner
-- Recycler
-- Royal Capacitor
-- Sawmerang
-- The Back-up
-- Volcanic Egg
-
 ## FAQ
 
-Q: I'm having heavy frame drops/lagging with ItemMulitplier set to 5 or greater! How do I fix this?
+- Q: I'm having heavy frame drops/lagging with ItemMulitplier set to 5 or greater! How do I fix this?
+	- A: You can't really fix this issue. Enemies with more items are more demanding in computer resources. You can only alleviate it by getting better computer parts. 
 
-A: You can't really fix this issue. With a higher multiplier, it makes the game more demanding in computer resources. You can only alleviate it by getting better computer parts. 
+- Q: How does the item drop work for enemies?
+	- A: As of 3.0.0, the item drop chance is actually the chance of the enemy being able to drop anything. On death it calculates the chance of dropping an item of its inventory, and that is the item's tier's generation chance multiplied by 5.
 
-Q: How does the item drop work for enemies?
+- Q: How does InheritItems work?
+	- A: It will randomly choose a player to inherit items from.
 
-A: It will randomly choose an item from the pool of items that the enemy has when it dies. White items are the most common to drop and so on.
+- Q: How do you calculate the item gen cap for item generation?
+	- A: As of 3.0.0, if not inheriting from a player, it goes as follows:
+		- Selects a random item that isn't blacklisted, is in an available item tier, based off the item tier's generation chance.
+		- If the monster has too many items of the same tier, generate a different item.
+		- Amount is a random number from 0 to the current stage plus the player's total item count or the player's average item count, depending on the config.
+		- Amount is multiplied by ItemMulitplier specified in the config.
+		- Amount is limited by the Limiter if its enabled.
+			- Amount is set to number of stages cleared if the limiter list had the item's entry with zero.
 
-Q: How does InheritItems work?
-
-A: It will randomly choose a player to inherit items from.
-
-Q: How do you calculate the item gen cap for item generation?
-
-A: Currently the way it is done is randomly selecting a value from 0 to the current stage * item gen cap, inclusively, for every item. 
-
-Q: I want to see what the enemies have. How can I?
-
-A: I do not have a solution at the moment since every enemy will have their own unique inventory.
-
-Q: What items are being limited by default?
-
-A: Feel free to message me about item imbalance! 
-
-The following items blow are limited and subject to change based on user complaints:
-
-These are capped at current stage number:
-- Death Mark
-- Irradiant Pearl
-- Pearl
-- Repulsion Armor Plate
-
-These are always capped at this amount:
-- Brilliant Behemoth - Capped at 2 - 5.5m Radius
-- Cautious Slug - Capped at 30 - 4600% Passive Health Regen
-- Chronobauble - Capped at 1 - 60% slow for 1 second
-- Focus Crystal - Capped at 3 - 45% Increased Damage
-- Fuel Cell - Capped at 3 - ~30% Reduced Equipment CD (guesstimate)
-- Gasoline - Capped at 2 - 16m Range & Burn for 225% Monster Base Damage
-- Gesture of the Drowned - Capped at 1 - 50% Reduced Equipment CD
-- Razor Wire - Capped at 1 - 25m Radius (this will suck for melee classes)
-- Tougher Times - Capped at 7 - ~51% Dodge Chance
-- Tri-tip Dagger - Capped at 3 - 45% Bleed Chance
+- Q: I want to see what the enemies have. How can I?
+	- A: While it is possible, having a good solution for this (so not using chat or console logs) is rather difficult to come up.
 
 ## Changelog
 
+**v3.0.0**
+
+- Refactored the entire mod (Made by Anreol, if you have any issues, contact him!)
+	- Performance should've been increased as it is no longer querying some values over and over again.
+	- Blacklists now get applied to a different list at bootup, so it will no longer waste item rolls on something that it will later remove.
+		- No more Heretics!
+		
+	- Hardcoded lists are gone.
+		- They are now the default values of the blacklists in the config file.
+		
+	- Config file has been redone, you'll have to delete your old one.
+	- Config file no longer accepts item indexes or equipment indexes as a valid entry in blacklists.
+	- Added a config for elite equipment to get banned from generating by default, no need for the user to add them themselves.
+	- Added configs for item tier generations, check them out!
+		- Enemies should now be able to generate Boss Tier items.
+	
+	- Enemies no longer multiply their Gestures if generating items at random, and they *should* always have one single Gesture at all times.
+	- Enemies only generate equipment if they dont have one already.
+	
+	- Added a ton of debug commands
+		- ewi_reloadconfig | Reloads the config file, along with everything else, server only.
+		- ewi_dumpItemBlackList | Dumps the currently loaded item blacklist to console.
+		- ewi_dumpEquipBlackList | Dumps the currently loaded equipment blacklist to console.
+		- ewi_dumpLimiterBlackList | Dumps the currently loaded item limiter dictionary to console.
+		- ewi_dumpAllItemTierData | Dumps all the currently loaded arrays related to ItemTiers to console.
+		- ewi_midRunData | Shows data specific to the run to console. Only usable in a run.
+		- ewi_dumpItemPool | Dumps the currently loaded item pool to console, which enemies will generate items from.
+		- ewi_dumpEquipPool | Dumps the currently loaded equipment pool to console, which enemies will generate equipment from.
+		
+		
 **v2.0.4**
 
 - Changed alternative scaling option behavior to average item count instead of highest.
