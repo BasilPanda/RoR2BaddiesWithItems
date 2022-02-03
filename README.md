@@ -1,5 +1,5 @@
 ﻿# Enemies With Items
-## By Basil
+## By Basil & Anreol
 A mod allows enemies to be spawned with items for a more difficult experience!
 This mod differs from the Artifact of Evolution (give all monsters the same items every stage artifact) as it scales harder and it makes every enemy have different items.
 Can be played with the Artifact of Evolution for guaranteed items on every monster.
@@ -13,7 +13,8 @@ Want the enemies to inherit player items? Possible with the InheritItems setting
 
 By default, enemies will only start spawning with items **after the 5th stage (first loop).**
 
-Please contact Basil#7379 on Discord for any issues or interests!
+Please contact Anreol#8231 on Discord for any issues or interests!
+Basil#7379 will *probably* be back when the the first DLC, Survivors of the Void, comes out.
 
 ## Installation
 1. Install [BepInEx Mod Pack](https://thunderstore.io/package/bbepis/BepInExPack/)
@@ -55,7 +56,7 @@ Please contact Basil#7379 on Discord for any issues or interests!
 
 **v3.0.0**
 
-- Refactored the entire mod (Made by Anreol, if you have any issues, contact him!)
+- Refactored the entire mod (Made by Anreol#8231, if you have any issues, contact him!)
 	- Performance should've been increased as it is no longer querying some values over and over again.
 	- Blacklists now get applied to a different list at bootup, so it will no longer waste item rolls on something that it will later remove.
 		- If you accidently blacklist something like BoostHP or Ghost, it should not be removed from elite enemies. This applies to any other item added by things other than this mod.
