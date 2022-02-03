@@ -4,10 +4,10 @@ A mod allows enemies to be spawned with items for a more difficult experience!
 This mod differs from the Artifact of Evolution (give all monsters the same items every stage artifact) as it scales harder and it makes every enemy have different items.
 Can be played with the Artifact of Evolution for guaranteed items on every monster.
 
-**Now with a different scaling mode!**
+**Now rewritten from the ground up!**
 
-**Custom blacklists now accept item code names!**
-**Item drop option available! Check config!**
+**3.0.0 has a new config file, make sure to delete the old one.**
+**Full control over item tiers! Check config!**
 
 Want the enemies to inherit player items? Possible with the InheritItems setting!
 
@@ -37,7 +37,7 @@ Please contact Basil#7379 on Discord for any issues or interests!
 	- A: As of 3.0.0, the item drop chance is actually the chance of the enemy being able to drop anything. On death it calculates the chance of dropping an item of its inventory, and that is the item's tier's generation chance multiplied by 5.
 
 - Q: How does InheritItems work?
-	- A: It will randomly choose a player to inherit items from.
+	- A: It will randomly choose a player to inherit items from. Copied items will not be affected by any of the mod's blacklists, except for the equipment blacklist.
 
 - Q: How do you calculate the item gen cap for item generation?
 	- A: As of 3.0.0, if not inheriting from a player, it goes as follows:
@@ -58,20 +58,27 @@ Please contact Basil#7379 on Discord for any issues or interests!
 - Refactored the entire mod (Made by Anreol, if you have any issues, contact him!)
 	- Performance should've been increased as it is no longer querying some values over and over again.
 	- Blacklists now get applied to a different list at bootup, so it will no longer waste item rolls on something that it will later remove.
+		- If you accidently blacklist something like BoostHP or Ghost, it should not be removed from elite enemies. This applies to any other item added by things other than this mod.
+		- Item generation now has a cap on failed generated attempts as a failsafe to don't freeze the game in case the user has a very restrictive config.
+		- Enemies should now roll the items that the user wants.
 		- No more Heretics!
 		
 	- Hardcoded lists are gone.
 		- They are now the default values of the blacklists in the config file.
-		
+	
 	- Config file has been redone, you'll have to delete your old one.
 	- Config file no longer accepts item indexes or equipment indexes as a valid entry in blacklists.
 	- Added a config for elite equipment to get banned from generating by default, no need for the user to add them themselves.
+	- Added a config to automatically blacklist items like scraps and Halcyon Seed.
+	- Added a config for AI Blacklisted items to get banned from generating by default.
+		- Disable at your own conditions! The default item blacklist no longer includes AI blacklisted items.
+
 	- Added configs for item tier generations, check them out!
 		- Enemies should now be able to generate Boss Tier items.
 	
-	- Enemies no longer multiply their Gestures if generating items at random, and they *should* always have one single Gesture at all times.
+	- Enemies longer multiply their Gestures if generating items at random, and they *should* always have one single Gesture at all times if they generated a equipment.
 	- Enemies only generate equipment if they dont have one already.
-	
+	- If copying the equipment from a player, it will no longer get a fuel array in case the equipment was blacklisted.
 	- Added a ton of debug commands
 		- ewi_reloadconfig | Reloads the config file, along with everything else, server only.
 		- ewi_dumpItemBlackList | Dumps the currently loaded item blacklist to console.
@@ -81,7 +88,8 @@ Please contact Basil#7379 on Discord for any issues or interests!
 		- ewi_midRunData | Shows data specific to the run to console. Only usable in a run.
 		- ewi_dumpItemPool | Dumps the currently loaded item pool to console, which enemies will generate items from.
 		- ewi_dumpEquipPool | Dumps the currently loaded equipment pool to console, which enemies will generate equipment from.
-		
+	
+	- Bunch other things that I probably forgot about
 		
 **v2.0.4**
 

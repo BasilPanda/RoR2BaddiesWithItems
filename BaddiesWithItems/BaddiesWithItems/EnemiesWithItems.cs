@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using RoR2;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -27,18 +28,19 @@ namespace BaddiesWithItems
 
         public static ConfigEntry<string> EquipGenChance;
 
-        public static ConfigEntry<string> CustomItemBlacklist;
+        public static ConfigEntry<string> ConfigItemBlacklist;
         public static ConfigEntry<string> ConfigEquipBlacklist;
         public static ConfigEntry<string> ConfigItemLimiter;
         public static ConfigEntry<string> ConfigItemTiersEnabledWeights;
         public static ConfigEntry<string> ConfigItemTiersCaps;
 
-        public static ConfigEntry<bool> ItemsBlacklist;
         public static ConfigEntry<bool> Limiter;
 
         public static ConfigEntry<bool> EquipItems;
-        public static ConfigEntry<bool> EquipBlacklist;
-        public static ConfigEntry<bool> EquipAutoBanElite;
+
+        public static ConfigEntry<bool> AutoBanEquipElite;
+        public static ConfigEntry<bool> AutoBanItemAIBlacklisted;
+        public static ConfigEntry<bool> AutoBanItemWorldUniqueAndScrap;
 
         public static ConfigEntry<string> DropChance;
 
@@ -78,7 +80,7 @@ namespace BaddiesWithItems
                 "Generator Settings",
                 "ItemMultiplier",
                 "1",
-                "Multiplies the monster's inventory by this amount after generating items.");
+                "Multiplies a item generation's amount by this.\nKeep in mind that limiters and caps will apply if possible after multiplication.");
 
             StageReq = Config.Bind(
                 "General Settings",
@@ -105,7 +107,7 @@ namespace BaddiesWithItems
                "General Settings",
                "ConfigItemTiersWeights",
                "Tier1-40, Tier2-20, Tier3-1, Lunar-0.5",
-               "Percentage chance of items of a certain tier to be generated.\nEnter the names of item tiers as X-Y separated by a comma and a space. X as tier name & Y as percentage. ex) Tier1-40, Tier2-20.\nA item tier lacking an entry here will not be generated."
+               "Percentage chance of items of a certain tier to be generated.\nEnter the names of item tiers as X-Y separated by a comma and a space. X as tier name & Y as percentage. ex) Tier1-40, Tier2-20.\nA item tier lacking an entry here WILL NOT be generated."
                );
 
             ConfigItemTiersCaps = Config.Bind(
@@ -122,31 +124,45 @@ namespace BaddiesWithItems
                 "Toggles Use items to be inherited/generated."
                 );
 
-            EquipAutoBanElite = Config.Bind(
-                "Generator Settings",
+            AutoBanEquipElite = Config.Bind(
+                "Automatic Ban Lists",
                 "EquipAutoBanElite",
                 true,
-                "Should all elite equipment be automatically banned from generating for enemies. Works for unused elites (Annihilators) or modded ones (if they were added to the game properly)."
+                "Should all elite equipment be automatically put in the blacklist. Works for a few unused elites or modded ones (if they were added to the game properly)."
                 );
 
-            CustomItemBlacklist = Config.Bind(
+            AutoBanItemAIBlacklisted = Config.Bind(
+                "Automatic Ban Lists",
+                "ItemAutoBanAIBlacklisted",
+                true,
+                "Should all items with the AI blacklisted tag be automatically put in the blacklist. Disable at your own volition! They are blacklisted for a reason."
+            );
+
+            AutoBanItemWorldUniqueAndScrap = Config.Bind(
+                "Automatic Ban Lists",
+                "AutoBanItemWorldUniqueAndScrap",
+                true,
+                "Should all items that are considered scrap and items that are World Unique (Halcyon Seed or pearls, for example) be banned automatically."
+            );
+
+            ConfigItemBlacklist = Config.Bind(
                 "Ban Lists",
-                "CustomItemBlacklist",
-                "StickyBomb, StunChanceOnHit, NovaOnHeal, ShockNearby, Mushroom, ExplodeOnDeath, LaserTurbine, ExecuteLowHealthElite, TitanGoldDuringTP, TreasureCache, BossDamageBonus, ExtraLifeConsumed, Feather, Firework, SprintArmor, JumpBoost, GoldOnHit, WardOnLevel, BeetleGland, CrippleWardOnLevel, TPHealingNova, LunarTrinket, BonusGoldPackOnKill, Squid, SprintWisp, FocusConvergence, MonstersOnShrineUse, ScrapWhite, ScrapGreen, ScrapRed, ScrapYellow, RoboBallBuddy",
+                "ConfigItemBlacklist",
+                "Missile, Bear, ExplodeOnDeath, NovaOnHeal, BounceNearby, StickyBomb, RoboBallBuddy",
                 "Enter item code name separated by a comma and a space to blacklist certain items. ex) PersonalShield, Syringe\nItem names: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names"
                 );
 
             ConfigEquipBlacklist = Config.Bind(
                "Ban Lists",
-               "CustomEquipBlacklist",
-               "Blackhole, BFG, Lightning, Scanner, CommandMissile, BurnNearby, DroneBackup, Gateway, FireBallDash, Saw, Recycle, OrbitalLaser, Enigma",
+               "ConfigEquipBlacklist",
+               "CommandMissile, Blackhole, GhostGun, DroneBackup, OrbitalLaser, BFG, Enigma, Lightning, GoldGat, BurnNearby, Scanner, Gateway, FireBallDash, Recycle",
                "Enter equipment codenames separated by a comma and a space to blacklist certain equipments. ex) Saw, DroneBackup\nEquip names: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names"
                );
 
             ConfigItemLimiter = Config.Bind(
                "Ban Lists",
-               "CustomItemCaps",
-               "Bear-7, HealWhileSafe-30, SlowOnHit-1, Behemoth-2, BleedOnHit-3, IgniteOnKill-2, AutoCastEquipment-1, NearbyDamageBonus-3, ShinyPearl-0, Pearl-0, Thorns-1, DeathMark-0, ArmorPlate-0",
+               "ConfigItemLimiter",
+               "HealWhileSafe-10, SlowOnHit-1, Medkit-4, Behemoth-2, BleedOnHit-3, IgniteOnKill-2, AutoCastEquipment-1, NearbyDamageBonus-3, DeathMark-0, ArmorPlate-0",
                "Enter item codenames as X-Y separated by a comma and a space to apply caps to certain items. X is the item code name and Y is the number cap. ex) PersonalShield-20, Syringe-5. A zero (0) makes the item be limited by the current number of cleared stages."
                );
         }
@@ -258,7 +274,28 @@ namespace BaddiesWithItems
                 HG.ArrayUtils.ArrayAppend(ref EquipmentBlackList, item.eliteEquipmentDef);
             }
         }
-
+        public static void AppendAIBlacklisted()
+        {
+            foreach (ItemIndex item in (from thing in ItemCatalog.allItems where ItemCatalog.GetItemDef(thing).ContainsTag(ItemTag.AIBlacklist) select thing).ToArray())
+            {
+                ItemDef itemdef = ItemCatalog.GetItemDef(item);
+                if (itemdef != null)
+                {
+                    HG.ArrayUtils.ArrayAppend(ref ItemBlackList, itemdef);
+                }
+            }
+        }
+        public static void AppendWorldUniqueAndScrap()
+        {
+            foreach (ItemIndex item in (from thing in ItemCatalog.allItems where ItemCatalog.GetItemDef(thing).ContainsTag(ItemTag.Scrap) || ItemCatalog.GetItemDef(thing).ContainsTag(ItemTag.WorldUnique) select thing).ToArray())
+            {
+                ItemDef itemdef = ItemCatalog.GetItemDef(item);
+                if (itemdef != null)
+                {
+                    HG.ArrayUtils.ArrayAppend(ref ItemBlackList, itemdef);
+                }
+            }
+        }
         public void RebuildConfig()
         {
             AvailableItemTiers = new ItemTier[0];
@@ -275,8 +312,12 @@ namespace BaddiesWithItems
             ReadConfigItemBlacklist();
             ReadConfigItemLimiter();
 
-            if (EquipAutoBanElite.Value)
+            if (AutoBanEquipElite.Value)
                 AppendEliteEquipment();
+            if (AutoBanItemAIBlacklisted.Value)
+                AppendAIBlacklisted();
+            if (AutoBanItemWorldUniqueAndScrap.Value)
+                AppendWorldUniqueAndScrap();
 
             PickupLists.BuildItemAndEquipmentDictionaries();
 
@@ -289,7 +330,7 @@ namespace BaddiesWithItems
             foreach (string equipName in customEquiplist)
             {
                 EquipmentDef equipmentDef = EquipmentCatalog.GetEquipmentDef(EquipmentCatalog.FindEquipmentIndex(equipName));
-                if (equipmentDef.equipmentIndex != EquipmentIndex.None)
+                if (equipmentDef != null && equipmentDef.equipmentIndex != EquipmentIndex.None)
                 {
                     HG.ArrayUtils.ArrayAppend(ref EquipmentBlackList, equipmentDef);
                 }
@@ -298,12 +339,12 @@ namespace BaddiesWithItems
 
         public static void ReadConfigItemBlacklist()
         {
-            string[] customItemlist = CustomItemBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] customItemlist = ConfigItemBlacklist.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (string itemName in customItemlist)
             {
                 ItemDef itemDef = ItemCatalog.GetItemDef(ItemCatalog.FindItemIndex(itemName));
-                if (itemDef.itemIndex != ItemIndex.None)
+                if (itemDef != null && itemDef.itemIndex != ItemIndex.None)
                 {
                     HG.ArrayUtils.ArrayAppend(ref ItemBlackList, itemDef);
                 }
@@ -385,7 +426,7 @@ namespace BaddiesWithItems
             StringBuilder stringbuilder = new StringBuilder();
             foreach (ItemDef item in ItemBlackList)
             {
-                if (item.itemIndex != ItemIndex.None)
+                if (item != null && item.itemIndex != ItemIndex.None)
                 {
                     stringbuilder.Append((item) + " | ");
                     counter++;
@@ -402,7 +443,7 @@ namespace BaddiesWithItems
             StringBuilder strongBuilder = new StringBuilder();
             foreach (EquipmentDef equipmentDef in EquipmentBlackList)
             {
-                if (equipmentDef.equipmentIndex != EquipmentIndex.None)
+                if (equipmentDef != null && equipmentDef.equipmentIndex != EquipmentIndex.None)
                 {
                     strongBuilder.Append((equipmentDef) + " | ");
                     counter++;
@@ -419,7 +460,7 @@ namespace BaddiesWithItems
             StringBuilder textConstructor = new StringBuilder();
             foreach (KeyValuePair<ItemDef, int> keyValuePair in LimitedItemsDictionary)
             {
-                if (keyValuePair.Key.itemIndex != ItemIndex.None)
+                if (keyValuePair.Key != null && keyValuePair.Key.itemIndex != ItemIndex.None)
                 {
                     textConstructor.Append((keyValuePair) + " Amnt: " + (keyValuePair.Value) + " | ");
                     counter++;

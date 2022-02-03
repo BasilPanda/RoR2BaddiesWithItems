@@ -24,7 +24,7 @@ namespace BaddiesWithItems
         private static void onPlayerRemoved(PlayerCharacterMasterController obj)
         {
             if (!NetworkServer.active) return;
-            instance.StartCoroutine(RebuildPlayers(obj, false));
+            instance.StartCoroutine(RebuildPlayers(obj, true));
             //Rebuild(obj, true);
         }
 
@@ -58,10 +58,23 @@ namespace BaddiesWithItems
         //Players always get items in a slower pace to enemies spawning... this should be less expensive
         private static void onInventoryChanged()
         {
-            foreach (var item in ItemCatalog.allItems)
+            _cachedTotalItemCount = 0;
+            _cachedTotalItemCount = GetPlayerItems();
+        }
+
+        private static int GetPlayerItems()
+        {
+            int n = 0;
+
+            for (int i = 0; i < PlayerCharacterMasterController.instances.Count; i++)
             {
-                _cachedTotalItemCount = Util.GetItemCountForTeam(TeamIndex.Player, item, false, true);
+                for (int y = 0; y < PlayerCharacterMasterController.instances[i].master.inventory.itemAcquisitionOrder.Count; y++)
+                {
+                    n += PlayerCharacterMasterController.instances[i].master.inventory.GetItemCount(PlayerCharacterMasterController.instances[i].master.inventory.itemAcquisitionOrder[i]);
+                }
             }
+            //_cachedTotalItemCount += Util.GetItemCountForTeam(TeamIndex.Player, itemIndex, true, true);
+            return n;
         }
 
         //Future proofing for item tiers defs
@@ -70,7 +83,7 @@ namespace BaddiesWithItems
             WeightedSelection<ItemDef> weightedSelection = new WeightedSelection<ItemDef>(8);
             for (int i = 0; i < EnemiesWithItems.AvailableItemTiers.Length; i++)
             {
-                ItemDef itemDef = Run.instance.treasureRng.NextElementUniform<ItemDef>((from kvp in PickupLists.finalItemDefList where kvp.tier == AvailableItemTiers[i] select kvp).ToList());
+                ItemDef itemDef = Run.instance.treasureRng.NextElementUniform<ItemDef>((from itemDefValue in PickupLists.finalItemDefList where itemDefValue != null && itemDefValue.tier == AvailableItemTiers[i] select itemDefValue).ToList());
                 weightedSelection.AddChoice(itemDef, ItemTierWeights[i]);
             }
 
@@ -104,33 +117,45 @@ namespace BaddiesWithItems
                     return;
                 }
 
-
+                int maxFailedAttempts = 5;
                 int maxItemsToGenerate = 0;
                 // More balanced behavior, using the average of all players
                 maxItemsToGenerate = (int)Math.Pow(Run.instance.stageClearCount + 1, 2) + (_cachedTotalItemCount / _cachedPlayerCount);
                 if (Scaling.Value) // If scaling is true, then use the total items of all players in lobby. ORIGINAL BEHAVIOR
                     maxItemsToGenerate = (int)Math.Pow(Run.instance.stageClearCount + 1, 2) + _cachedTotalItemCount;
 
+                int currentFailedAttempts = 0;
                 int currentItemsGenerated = 0;
-                while (currentItemsGenerated <= maxItemsToGenerate)
+                while (currentItemsGenerated <= maxItemsToGenerate && currentFailedAttempts <= maxFailedAttempts)
                 {
                     ItemDef evaluation = EvaluateItem();
                     if (evaluation.itemIndex == ItemIndex.None)
+                    {
+                        currentFailedAttempts++;
                         continue;
+                    }
+
                     int currentGenCap = 0;
                     int currentItemTierCap = 0;
                     for (int i = 0; i < AvailableItemTiers.Length; i++)
                     {
                         currentItemTierCap = ItemTierCaps[i];
-                        if (inventory.GetTotalItemCountOfTier(AvailableItemTiers[i]) > currentItemTierCap)
+                        if (inventory.GetTotalItemCountOfTier(AvailableItemTiers[i]) > currentItemTierCap && currentItemTierCap > 0)
+                        {
+                            currentFailedAttempts++;
                             continue;
+                        }
                     }
+
                     int amountToGive = UnityEngine.Random.Range(0, maxItemsToGenerate + 1);
                     float configItemMultiplier = ConfigToFloat(ItemMultiplier.Value);
                     if (configItemMultiplier != 1)
                         amountToGive = Mathf.CeilToInt(amountToGive * configItemMultiplier);
                     if (amountToGive <= 0)
+                    {
+                        currentFailedAttempts++;
                         continue;
+                    }
 
                     if (LimitedItemsDictionary.ContainsKey(evaluation) && Limiter.Value)
                     {
@@ -215,7 +240,7 @@ namespace BaddiesWithItems
                 {
                     if (inventory.GetEquipmentIndex() == item.equipmentIndex)
                     {
-                        inventory.SetEquipmentIndex(RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex); // default to Fuel Array
+                        inventory.SetEquipmentIndex(EquipmentIndex.None);
                         break;
                     }
                 }
