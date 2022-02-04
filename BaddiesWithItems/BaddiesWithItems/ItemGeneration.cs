@@ -68,9 +68,13 @@ namespace BaddiesWithItems
 
             for (int i = 0; i < PlayerCharacterMasterController.instances.Count; i++)
             {
-                for (int y = 0; y < PlayerCharacterMasterController.instances[i].master.inventory.itemAcquisitionOrder.Count; y++)
+                CharacterMaster characterMaster = PlayerCharacterMasterController.instances[i].master;
+                if (characterMaster)
                 {
-                    n += PlayerCharacterMasterController.instances[i].master.inventory.GetItemCount(PlayerCharacterMasterController.instances[i].master.inventory.itemAcquisitionOrder[i]);
+                    for (int y = 0; y < characterMaster.inventory.itemAcquisitionOrder.Count; y++)
+                    {
+                        n += characterMaster.inventory.GetItemCount(characterMaster.inventory.itemAcquisitionOrder[y]);
+                    }
                 }
             }
             //_cachedTotalItemCount += Util.GetItemCountForTeam(TeamIndex.Player, itemIndex, true, true);
@@ -129,7 +133,7 @@ namespace BaddiesWithItems
                 while (currentItemsGenerated <= maxItemsToGenerate && currentFailedAttempts <= maxFailedAttempts)
                 {
                     ItemDef evaluation = EvaluateItem();
-                    if (evaluation.itemIndex == ItemIndex.None)
+                    if (evaluation == null || evaluation.itemIndex == ItemIndex.None)
                     {
                         currentFailedAttempts++;
                         continue;
@@ -186,11 +190,14 @@ namespace BaddiesWithItems
                     return;
                 }
                 EquipmentDef equipmentDef = EvaluateEquipment();
-                if (equipmentDef.equipmentIndex != EquipmentIndex.None)
+                if (equipmentDef != null)
                 {
-                    inventory.ResetItem(RoR2Content.Items.AutoCastEquipment);
-                    inventory.GiveItem(RoR2Content.Items.AutoCastEquipment);
-                    inventory.SetEquipmentIndex(equipmentDef.equipmentIndex);
+                    if (equipmentDef.equipmentIndex != EquipmentIndex.None)
+                    {
+                        inventory.ResetItem(RoR2Content.Items.AutoCastEquipment);
+                        inventory.GiveItem(RoR2Content.Items.AutoCastEquipment);
+                        inventory.SetEquipmentIndex(equipmentDef.equipmentIndex);
+                    }
                 }
             }
 

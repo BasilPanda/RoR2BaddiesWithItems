@@ -47,7 +47,7 @@ namespace BaddiesWithItems
         public static void SpawnResultItemAdder(SpawnCard.SpawnResult spawnResult)
         {
             CharacterMaster spawnResultMaster = spawnResult.spawnedInstance ? spawnResult.spawnedInstance.GetComponent<CharacterMaster>() : null;
-            if (spawnResultMaster == null || !spawnResult.success)
+            if (spawnResultMaster == null || !spawnResult.success || spawnResultMaster.inventory == null)
                 return;
 
             TeamIndex? teamIndexOverride = spawnResult.spawnRequest.teamIndexOverride;

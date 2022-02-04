@@ -19,9 +19,8 @@ Basil#7379 will *probably* be back when the the first DLC, Survivors of the Void
 
 ## Installation
 1. Install [BepInEx Mod Pack](https://thunderstore.io/package/bbepis/BepInExPack/)
-2. Install [MMHookGenPatcher](https://thunderstore.io/package/RiskofThunder/HookGenPatcher/)
-3. Download the latest EnemiesWithItems.dll [here](https://thunderstore.io/package/BasilPanda/EnemiesWithItems/).
-4. Move EnemiesWithItems.dll to your \BepInEx\plugins folder
+2. Download the latest EnemiesWithItems.dll [here](https://thunderstore.io/package/BasilPanda/EnemiesWithItems/).
+3. Move EnemiesWithItems.dll to your \BepInEx\plugins folder
 
 ## Configuration
 
@@ -54,6 +53,10 @@ Basil#7379 will *probably* be back when the the first DLC, Survivors of the Void
 	- A: While it is possible, having a good solution for this (so not using chat or console logs) is rather difficult to come up.
 
 ## Changelog
+**v3.0.1**
+
+- Nullchecked some things that should've been nullchecked but weren't.
+- Fixed an out of range issue.
 
 **v3.0.0**
 
