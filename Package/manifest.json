@@ -1,6 +1,6 @@
 {
     "name": "EnemiesWithItems",
-    "version_number": "3.0.0",
+    "version_number": "3.0.1",
     "website_url": "",
     "description": "Allows enemies to be spawned with different items! Lots of configuration such as custom blacklisting and having enemies inherit player items or drop their items! Refactor update!",
     "dependencies": [
