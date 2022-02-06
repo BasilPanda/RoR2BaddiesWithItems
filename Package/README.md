@@ -59,6 +59,8 @@ Basil#7379 will *probably* be back when the the first DLC, Survivors of the Void
 - Total item count now only counts visible items
 - ewi_midRunData now reports the correct number of max items to generate
 - Fixed cached item count carrying over to the next run
+- **Important note:** If you are using this mod alongside [AI Blacklist](https://thunderstore.io/package/Moffein/AI_Blacklist/) and [BossEquipmentFix](https://thunderstore.io/package/Groove_Salad/BossEquipmentFix/) and your game keeps freezing after a while, disable BossEquipmentFix.
+	- It is currently unknown why this incompatability happens
 
 **v3.0.1**
 
