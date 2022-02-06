@@ -1,5 +1,6 @@
 ﻿using RoR2;
 using System;
+using UnityEngine;
 
 namespace BaddiesWithItems
 {
@@ -18,12 +19,35 @@ namespace BaddiesWithItems
         public static bool CanStartGivingItems(TeamIndex? teamIndexOfBodyToGive = null)
         {
             if (Run.instance.stageClearCount + 1 < EnemiesWithItems.StageReq.Value)
+            {
+#if DEBUG
+                Debug.Log("Cannot give items yet because the current stage doesnt fulfill the stage requirement");
+#endif
                 return false;
+            }
+            
             if (EnemiesWithItems.StageReq.Value == 6 && SceneCatalog.mostRecentSceneDef.isFinalStage && Run.instance.loopClearCount == 0)
+            {
+#if DEBUG
+                Debug.Log("Won't give enemies items because stage requirement is stage 6 and we are in the final stage.");
+#endif
                 return false;
+            }
+            
             if (teamIndexOfBodyToGive != null)
+            {
+#if DEBUG
+                Debug.Log("teamIndexOfBodyToGive isn't null: " + teamIndexOfBodyToGive);
+#endif
                 if (!TeamManager.IsTeamEnemy(teamIndexOfBodyToGive.GetValueOrDefault(), TeamIndex.Player))
+                {
+#if DEBUG
+                    Debug.Log(teamIndexOfBodyToGive + " wasn't an enemy to the players.");
+#endif
                     return false;
+                }
+            }
+
             return true;
         }
 

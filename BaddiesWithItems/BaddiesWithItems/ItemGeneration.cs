@@ -17,8 +17,14 @@ namespace BaddiesWithItems
         })]
         private static void Init()
         {
+            Run.onServerGameOver += onServerGameOver;
             PlayerCharacterMasterController.onPlayerAdded += onPlayerAdded;
             PlayerCharacterMasterController.onPlayerRemoved += onPlayerRemoved;
+        }
+
+        private static void onServerGameOver(Run arg1, GameEndingDef arg2)
+        {
+            _cachedTotalItemCount = 0;
         }
 
         private static void onPlayerRemoved(PlayerCharacterMasterController obj)
@@ -37,6 +43,8 @@ namespace BaddiesWithItems
 
         private static int _cachedPlayerCount;
         private static int _cachedTotalItemCount;
+
+        private static int maxItemsToGenerate;
 
         private static IEnumerator RebuildPlayers(PlayerCharacterMasterController playerExcited, bool removing)
         {
@@ -73,7 +81,11 @@ namespace BaddiesWithItems
                 {
                     for (int y = 0; y < characterMaster.inventory.itemAcquisitionOrder.Count; y++)
                     {
-                        n += characterMaster.inventory.GetItemCount(characterMaster.inventory.itemAcquisitionOrder[y]);
+                        ItemIndex itemIndex = characterMaster.inventory.itemAcquisitionOrder[y];
+                        if (!ItemCatalog.GetItemDef(itemIndex).hidden)
+                        {
+                            n += characterMaster.inventory.GetItemCount(itemIndex);
+                        }
                     }
                 }
             }
@@ -106,13 +118,21 @@ namespace BaddiesWithItems
 
         public static void GenerateItemsToInventory(Inventory inventory, CharacterMaster masterToCopyFrom)
         {
+            maxItemsToGenerate = 0;
+
             if (InheritItems.Value) // inheritance
             {
+#if DEBUG
+                Debug.Log("Going to generate items from an inventory. " + inventory + " Master: " + masterToCopyFrom);
+#endif
                 CleanInventoryDependingOnConfigAndCopyFromMaster(inventory, masterToCopyFrom);
                 return;
             }
             if (GenerateItems.Value) // Using generator instead
             {
+#if DEBUG
+                Debug.Log("Going to use the Item Generator for inventory: " + inventory);
+#endif
                 if (PickupLists.finalItemDefList == null || PickupLists.finalItemDefList.Length <= 0)
                 {
 #if DEBUG
@@ -121,12 +141,10 @@ namespace BaddiesWithItems
                     return;
                 }
 
-                int maxFailedAttempts = 5;
-                int maxItemsToGenerate = 0;
-                // More balanced behavior, using the average of all players
-                maxItemsToGenerate = (int)Math.Pow(Run.instance.stageClearCount + 1, 2) + (_cachedTotalItemCount / _cachedPlayerCount);
-                if (Scaling.Value) // If scaling is true, then use the total items of all players in lobby. ORIGINAL BEHAVIOR
-                    maxItemsToGenerate = (int)Math.Pow(Run.instance.stageClearCount + 1, 2) + _cachedTotalItemCount;
+                // If scaling is true, then use the total items of all players in lobby. ORIGINAL BEHAVIOR
+                maxItemsToGenerate = (int)Math.Pow(Run.instance.stageClearCount + 1, 2) + _cachedTotalItemCount;
+                if (!Scaling.Value)  // More balanced behavior, using the average of all players
+                    maxItemsToGenerate = (int)Math.Pow(Run.instance.stageClearCount + 1, 2) + (_cachedTotalItemCount / _cachedPlayerCount);
 
                 int currentFailedAttempts = 0;
                 int currentItemsGenerated = 0;
@@ -151,9 +169,10 @@ namespace BaddiesWithItems
                         }
                     }
 
-                    int amountToGive = UnityEngine.Random.Range(0, maxItemsToGenerate + 1);
+                    int amountToGive = UnityEngine.Random.Range(0, Mathf.Max((maxItemsToGenerate - currentItemsGenerated), 1));
+                    //int amountToGive = UnityEngine.Random.Range(0, maxItemsToGenerate);
                     float configItemMultiplier = ConfigToFloat(ItemMultiplier.Value);
-                    if (configItemMultiplier != 1)
+                    if (configItemMultiplier != 1 && configItemMultiplier != 0)
                         amountToGive = Mathf.CeilToInt(amountToGive * configItemMultiplier);
                     if (amountToGive <= 0)
                     {
@@ -169,6 +188,7 @@ namespace BaddiesWithItems
                     }
                     else if (amountToGive > currentGenCap && currentGenCap > 0)
                         amountToGive = currentGenCap;
+
                     inventory.GiveItem(evaluation, amountToGive);
                     currentItemsGenerated += amountToGive;
 #if DEBUG
@@ -176,7 +196,7 @@ namespace BaddiesWithItems
 #endif
                 };
 #if DEBUG
-                Debug.Log("Max Items: " + maxItemsToGenerate + " Amount of items Added: " + currentItemsGenerated);
+                Debug.Log("Max Items To Generate: " + maxItemsToGenerate + " Amount of items Added: " + currentItemsGenerated + " Amount of failed rerolls: " + currentFailedAttempts);
 #endif
             }
 
@@ -277,6 +297,7 @@ namespace BaddiesWithItems
             }
         }
 
+        private const int maxFailedAttempts = 5;
         [ConCommand(commandName = "ewi_midRunData", flags = ConVarFlags.SenderMustBeServer, helpText = "Shows data specific to the run. Only usable in a run.")]
         private static void PrintMidRunData(ConCommandArgs args)
         {
@@ -289,10 +310,7 @@ namespace BaddiesWithItems
             StringBuilder bobTheBuilder = new StringBuilder();
             bobTheBuilder.AppendLine("Cached total item count: " + _cachedTotalItemCount);
             bobTheBuilder.AppendLine("Cached player count: " + _cachedPlayerCount);
-            if (Scaling.Value) // If scaling is true, then use the total items of all players in lobby. ORIGINAL BEHAVIOR
-                bobTheBuilder.Append("Max Items To Generate: " + (int)Math.Pow(Run.instance.stageClearCount + 1, 2) + _cachedTotalItemCount);
-            else // More balanced behavior, using the average of all players
-                bobTheBuilder.Append("Max Items To Generate: " + (int)Math.Pow(Run.instance.stageClearCount + 1, 2) + (_cachedTotalItemCount / _cachedPlayerCount));
+            bobTheBuilder.Append("Max Items To Generate: " + maxItemsToGenerate);
             Debug.Log(bobTheBuilder.ToString());
         }
     }

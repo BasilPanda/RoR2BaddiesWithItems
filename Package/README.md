@@ -53,6 +53,13 @@ Basil#7379 will *probably* be back when the the first DLC, Survivors of the Void
 	- A: While it is possible, having a good solution for this (so not using chat or console logs) is rather difficult to come up.
 
 ## Changelog
+**v3.0.2**
+
+- Added a ton of debug logs (Only in a debug build)
+- Total item count now only counts visible items
+- ewi_midRunData now reports the correct number of max items to generate
+- Fixed cached item count carrying over to the next run
+
 **v3.0.1**
 
 - Nullchecked some things that should've been nullchecked but weren't.
