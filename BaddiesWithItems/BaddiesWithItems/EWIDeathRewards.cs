@@ -16,10 +16,10 @@ namespace BaddiesWithItems
 
             float itemChance = 1f;
             WeightedSelection<ItemIndex> weightedSelection = new WeightedSelection<ItemIndex>(8);
-            for (int i = 0; i < EnemiesWithItems.AvailableItemTiers.Length; i++)
+            for (int i = 0; i < EnemiesWithItems.AvailableItemTierDefs.Length; i++)
             {
                 itemChance = EnemiesWithItems.ItemTierWeights[i] * 5;
-                ItemIndex[] itemIndices = inventory.itemAcquisitionOrder.Where(x => ItemCatalog.GetItemDef(x).tier == EnemiesWithItems.AvailableItemTiers[i]).ToArray();
+                ItemIndex[] itemIndices = inventory.itemAcquisitionOrder.Where(x => ItemCatalog.GetItemDef(x).tier == EnemiesWithItems.AvailableItemTierDefs[i].tier).ToArray();
                 if (itemIndices.Length <= 0)
                     continue;
                 weightedSelection.AddChoice(Run.instance.treasureRng.NextElementUniform<ItemIndex>(itemIndices), itemChance);

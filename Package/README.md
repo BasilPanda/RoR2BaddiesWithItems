@@ -4,7 +4,7 @@ A mod allows enemies to be spawned with items for a more difficult experience!
 This mod differs from the Artifact of Evolution (give all monsters the same items every stage artifact) as it scales harder and it makes every enemy have different items.
 Can be played with the Artifact of Evolution for guaranteed items on every monster.
 
-**Now rewritten from the ground up!**
+**Survivors of the Void update!**
 
 **3.0.0 has a new config file, make sure to delete the old one.**
 **Full control over item tiers! Check config!**
@@ -53,6 +53,13 @@ Basil#7379 will *probably* be back when the the first DLC, Survivors of the Void
 	- A: While it is possible, having a good solution for this (so not using chat or console logs) is rather difficult to come up.
 
 ## Changelog
+
+**v3.0.3**
+- Updated for Survivors of the Void
+	- Item availability now gets recalculated automatically on every run start.
+	- Items are now filtered depending on enabled expansions.
+	- Enemies will no longer generate items if there's no living players or if the game is already over. (Yeah there was a out of range issue because of this)
+
 **v3.0.2**
 
 - Added a ton of debug logs (Only in a debug build)
@@ -60,7 +67,7 @@ Basil#7379 will *probably* be back when the the first DLC, Survivors of the Void
 - ewi_midRunData now reports the correct number of max items to generate
 - Fixed cached item count carrying over to the next run
 - **Important note:** If you are using this mod alongside [AI Blacklist](https://thunderstore.io/package/Moffein/AI_Blacklist/) and [BossEquipmentFix](https://thunderstore.io/package/Groove_Salad/BossEquipmentFix/) and your game keeps freezing after a while, disable BossEquipmentFix.
-	- It is currently unknown why this incompatability happens
+	- It is currently unknown why this incompatibility happens
 
 **v3.0.1**
 

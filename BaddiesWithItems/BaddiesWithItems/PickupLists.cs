@@ -21,9 +21,17 @@ namespace BaddiesWithItems
             }
 
             ItemDef[] tempItemDefList = new ItemDef[ItemCatalog.itemCount];
-            (from item in ItemCatalog.allItems where item != ItemIndex.None && !EnemiesWithItems.ItemBlackList.Contains(ItemCatalog.GetItemDef(item)) select ItemCatalog.GetItemDef(item)).ToArray().CopyTo(tempItemDefList, 0);
             EquipmentDef[] tempEquipmentDefs = new EquipmentDef[EquipmentCatalog.equipmentCount];
-            (from item in EquipmentCatalog.allEquipment where item != EquipmentIndex.None && !EnemiesWithItems.EquipmentBlackList.Contains(EquipmentCatalog.GetEquipmentDef(item)) select EquipmentCatalog.GetEquipmentDef(item)).ToArray().CopyTo(tempEquipmentDefs, 0);
+            if (Run.instance == null)
+            {
+                (from item in ItemCatalog.allItems where item != ItemIndex.None && !EnemiesWithItems.ItemBlackList.Contains(ItemCatalog.GetItemDef(item)) select ItemCatalog.GetItemDef(item)).ToArray().CopyTo(tempItemDefList, 0);
+                (from item in EquipmentCatalog.allEquipment where item != EquipmentIndex.None && !EnemiesWithItems.EquipmentBlackList.Contains(EquipmentCatalog.GetEquipmentDef(item)) select EquipmentCatalog.GetEquipmentDef(item)).ToArray().CopyTo(tempEquipmentDefs, 0);
+            }
+            else
+            {
+                (from item in ItemCatalog.allItems where item != ItemIndex.None && !EnemiesWithItems.ItemBlackList.Contains(ItemCatalog.GetItemDef(item)) && !Run.instance.IsItemExpansionLocked(item) select ItemCatalog.GetItemDef(item)).ToArray().CopyTo(tempItemDefList, 0);
+                (from item in EquipmentCatalog.allEquipment where item != EquipmentIndex.None && !EnemiesWithItems.EquipmentBlackList.Contains(EquipmentCatalog.GetEquipmentDef(item)) && !Run.instance.IsEquipmentExpansionLocked(item) select EquipmentCatalog.GetEquipmentDef(item)).ToArray().CopyTo(tempEquipmentDefs, 0);
+            }
 
             finalItemDefList = new ItemDef[tempItemDefList.Length];
             finalEquipmentDefs = new EquipmentDef[tempEquipmentDefs.Length];

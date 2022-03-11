@@ -13,7 +13,7 @@ namespace BaddiesWithItems
     public class EnemiesWithItems : BaseUnityPlugin
     {
         internal const string ModIdentifier = "EnemiesWithItems";
-        internal const string ModVer = "3.0.2";
+        internal const string ModVer = "3.0.3";
 
         public static EnemiesWithItems instance;
 
@@ -107,14 +107,14 @@ namespace BaddiesWithItems
                "General Settings",
                "ConfigItemTiersWeights",
                "Tier1-40, Tier2-20, Tier3-1, Lunar-0.5",
-               "Percentage chance of items of a certain tier to be generated.\nEnter the names of item tiers as X-Y separated by a comma and a space. X as tier name & Y as percentage. ex) Tier1-40, Tier2-20.\nA item tier lacking an entry here WILL NOT be generated."
+               "Percentage chance of items of a certain tier to be generated.\nEnter the names of item tiers as X-Y separated by a comma and a space. X as tier name & Y as percentage. ex) Tier1-40, Tier2-20, VoidTier1-2.\nA item tier lacking an entry here WILL NOT be generated."
                );
 
             ConfigItemTiersCaps = Config.Bind(
                "General Settings",
                "ConfigItemTiersCaps",
                "Tier1-0, Tier2-0, Tier3-0, Lunar-0",
-               "Max of items of a certain tier to be generated.\nEnter the names of item tiers as X-Y separated by a comma and a space. X as tier name & Y as percentage. ex) Tier1-40, Tier2-20.\nA zero (0) disables the cap. Item tiers lacking an entry here, but that exists in ConfigItemTiersEnabledWeights will default to zero."
+               "Max of items of a certain tier to be generated.\nEnter the names of item tiers as X-Y separated by a comma and a space. X as tier name & Y as percentage. ex) Tier1-40, Tier2-20, VoidTier1-2.\nA zero (0) disables the cap. Item tiers lacking an entry here, but that exists in ConfigItemTiersEnabledWeights will default to zero."
                );
 
             EquipItems = Config.Bind(
@@ -174,7 +174,7 @@ namespace BaddiesWithItems
 
         public static ItemDef[] ItemBlackList = new ItemDef[0];
 
-        public static ItemTier[] AvailableItemTiers = new ItemTier[0];
+        public static ItemTierDef[] AvailableItemTierDefs = new ItemTierDef[0];
         public static float[] ItemTierWeights = new float[0];
         public static int[] ItemTierCaps = new int[0];
 
@@ -261,6 +261,11 @@ namespace BaddiesWithItems
 
                 Debug.Log("EnemiesWithItems " + ModVer + " Loaded!");
             });
+
+            Run.onRunStartGlobal += (delegate (Run run)
+            {
+                RebuildConfig();
+            });
         }
 
         /*[SystemInitializer(new Type[]
@@ -298,7 +303,7 @@ namespace BaddiesWithItems
         }
         public void RebuildConfig()
         {
-            AvailableItemTiers = new ItemTier[0];
+            AvailableItemTierDefs = new ItemTierDef[0];
             ItemTierWeights = new float[0];
 
             ItemBlackList = new ItemDef[0];
@@ -376,11 +381,10 @@ namespace BaddiesWithItems
                 string[] itemTierWeightPair = itemTierEntry.Split(new[] { '-' });
                 if (itemTierWeightPair.Length == 2)
                 {
-                    //TODO: Replace with a query to ItemTierDefCatalog
-                    ItemTier itemTier = (ItemTier)Enum.Parse(typeof(ItemTier), itemTierWeightPair[0]);
+                    ItemTierDef itemTier = ItemTierCatalog.GetItemTierDef((ItemTier)Enum.Parse(typeof(ItemTier), itemTierWeightPair[0]));
                     if (float.TryParse(itemTierWeightPair[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float weight))
                     {
-                        HG.ArrayUtils.ArrayAppend(ref AvailableItemTiers, itemTier);
+                        HG.ArrayUtils.ArrayAppend(ref AvailableItemTierDefs, itemTier);
                         HG.ArrayUtils.ArrayAppend(ref ItemTierWeights, weight);
                     }
                 }
@@ -389,7 +393,7 @@ namespace BaddiesWithItems
 
         public static void ReadConfigItemTierLimiter()
         {
-            ItemTierCaps = new int[AvailableItemTiers.Length];
+            ItemTierCaps = new int[AvailableItemTierDefs.Length];
 
             string[] customItemCaps = ConfigItemTiersCaps.Value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string itemCapEntry in customItemCaps)
@@ -397,11 +401,10 @@ namespace BaddiesWithItems
                 string[] ItemCapPair = itemCapEntry.Split(new[] { '-' });
                 if (ItemCapPair.Length == 2)
                 {
-                    //TODO: Replace with a query to ItemTierDefCatalog
-                    ItemTier itemTier = (ItemTier)Enum.Parse(typeof(ItemTier), ItemCapPair[0]);
-                    for (int i = 0; i < AvailableItemTiers.Length; i++)
+                    ItemTierDef itemTierDef = ItemTierCatalog.GetItemTierDef((ItemTier)Enum.Parse(typeof(ItemTier), ItemCapPair[0]));
+                    for (int i = 0; i < AvailableItemTierDefs.Length; i++)
                     {
-                        if (AvailableItemTiers[i] == itemTier && Int32.TryParse(ItemCapPair[1], out int cap))
+                        if (AvailableItemTierDefs[i] == itemTierDef && Int32.TryParse(ItemCapPair[1], out int cap))
                         {
                             ItemTierCaps[i] = cap;
                         }
@@ -472,14 +475,14 @@ namespace BaddiesWithItems
         [ConCommand(commandName = "ewi_dumpAllItemTierData", flags = ConVarFlags.SenderMustBeServer, helpText = "Dumps all the currently loaded arrays related to ItemTiers.")]
         private static void DumpAllItemTierData(ConCommandArgs args)
         {
-            Debug.Log("Length of available item tiers: " + AvailableItemTiers.Length);
+            Debug.Log("Length of available item tiers: " + AvailableItemTierDefs.Length);
             Debug.Log("Length of weighted item tiers (has to be the same as previous): " + ItemTierWeights.Length);
             Debug.Log("Length of capped item tiers: " + ItemTierCaps.Length);
             int counter = 0;
             StringBuilder textConstructor = new StringBuilder();
-            for (int i = 0; i < AvailableItemTiers.Length; i++)
+            for (int i = 0; i < AvailableItemTierDefs.Length; i++)
             {
-                textConstructor.Append(AvailableItemTiers[i] + " W: " + ItemTierWeights[i] + " C: " + ItemTierCaps[i] + " | ");
+                textConstructor.Append(AvailableItemTierDefs[i] + " W: " + ItemTierWeights[i] + " C: " + ItemTierCaps[i] + " | ");
                 counter++;
             }
             Debug.Log(textConstructor.ToString() + counter);

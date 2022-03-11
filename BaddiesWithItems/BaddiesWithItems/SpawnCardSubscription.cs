@@ -77,9 +77,12 @@ namespace BaddiesWithItems
             TeamIndex? teamIndexOverride = spawnResult.spawnRequest.teamIndexOverride;
             if (!CanStartGivingItems(teamIndexOverride))
                 return;
-            //Xoroshiro throws off a range issue here at the beginning of the run, might have something to do with Run.instance.livingPlayerCount being zero in the very first frame.
-            CharacterMaster playerToCopyFrom = PlayerCharacterMasterController.instances[RoR2.Run.instance.nextStageRng.RangeInt(0, Run.instance.livingPlayerCount)].master;
-            ItemGeneration.GenerateItemsToInventory(spawnResultMaster.inventory, playerToCopyFrom);
+            if (Run.instance.livingPlayerCount > 0 && !Run.instance.isGameOverServer)
+            {
+                //Xoroshiro throws off a range issue here at the beginning of the run, might have something to do with Run.instance.livingPlayerCount being zero in the very first frame.
+                CharacterMaster playerToCopyFrom = PlayerCharacterMasterController.instances[RoR2.Run.instance.nextStageRng.RangeInt(0, Run.instance.livingPlayerCount)].master;
+                ItemGeneration.GenerateItemsToInventory(spawnResultMaster.inventory, playerToCopyFrom);
+            }
         }
     }
 }

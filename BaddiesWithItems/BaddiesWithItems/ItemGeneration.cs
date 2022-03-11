@@ -14,6 +14,7 @@ namespace BaddiesWithItems
         [SystemInitializer(new Type[]
         {   typeof(ItemCatalog),
             typeof(PickupCatalog),
+            typeof(ItemTierCatalog)
         })]
         private static void Init()
         {
@@ -93,20 +94,18 @@ namespace BaddiesWithItems
             return n;
         }
 
-        //Future proofing for item tiers defs
         private static ItemDef EvaluateItem()
         {
             WeightedSelection<ItemDef> weightedSelection = new WeightedSelection<ItemDef>(8);
-            for (int i = 0; i < EnemiesWithItems.AvailableItemTiers.Length; i++)
+            for (int i = 0; i < EnemiesWithItems.AvailableItemTierDefs.Length; i++)
             {
-                ItemDef itemDef = Run.instance.treasureRng.NextElementUniform<ItemDef>((from itemDefValue in PickupLists.finalItemDefList where itemDefValue != null && itemDefValue.tier == AvailableItemTiers[i] select itemDefValue).ToList());
+                ItemDef itemDef = Run.instance.treasureRng.NextElementUniform<ItemDef>((from itemDefValue in PickupLists.finalItemDefList where itemDefValue != null && itemDefValue.tier == AvailableItemTierDefs[i].tier select itemDefValue).ToList());
                 weightedSelection.AddChoice(itemDef, ItemTierWeights[i]);
             }
 
             return weightedSelection.Evaluate(Run.instance.treasureRng.nextNormalizedFloat);
         }
 
-        //DLC will probably have tiered equipment... probably...
         private static EquipmentDef EvaluateEquipment()
         {
             EquipmentDef tier1 = Run.instance.treasureRng.NextElementUniform<EquipmentDef>(PickupLists.finalEquipmentDefs);
@@ -151,7 +150,7 @@ namespace BaddiesWithItems
                 while (currentItemsGenerated <= maxItemsToGenerate && currentFailedAttempts <= maxFailedAttempts)
                 {
                     ItemDef evaluation = EvaluateItem();
-                    if (evaluation == null || evaluation.itemIndex == ItemIndex.None)
+                    if (evaluation == null || evaluation.itemIndex == ItemIndex.None || Run.instance.IsItemExpansionLocked(evaluation.itemIndex))
                     {
                         currentFailedAttempts++;
                         continue;
@@ -159,10 +158,10 @@ namespace BaddiesWithItems
 
                     int currentGenCap = 0;
                     int currentItemTierCap = 0;
-                    for (int i = 0; i < AvailableItemTiers.Length; i++)
+                    for (int i = 0; i < AvailableItemTierDefs.Length; i++)
                     {
                         currentItemTierCap = ItemTierCaps[i];
-                        if (inventory.GetTotalItemCountOfTier(AvailableItemTiers[i]) > currentItemTierCap && currentItemTierCap > 0)
+                        if (inventory.GetTotalItemCountOfTier(AvailableItemTierDefs[i].tier) > currentItemTierCap && currentItemTierCap > 0)
                         {
                             currentFailedAttempts++;
                             continue;
@@ -212,7 +211,7 @@ namespace BaddiesWithItems
                 EquipmentDef equipmentDef = EvaluateEquipment();
                 if (equipmentDef != null)
                 {
-                    if (equipmentDef.equipmentIndex != EquipmentIndex.None)
+                    if (equipmentDef.equipmentIndex != EquipmentIndex.None && !Run.instance.IsEquipmentExpansionLocked(equipmentDef.equipmentIndex))
                     {
                         inventory.ResetItem(RoR2Content.Items.AutoCastEquipment);
                         inventory.GiveItem(RoR2Content.Items.AutoCastEquipment);
@@ -245,9 +244,9 @@ namespace BaddiesWithItems
         {
             foreach (ItemIndex item in inventory.itemAcquisitionOrder)
             {
-                foreach (ItemTier itemTier in AvailableItemTiers)
+                foreach (ItemTierDef itemTier in AvailableItemTierDefs)
                 {
-                    if (ItemCatalog.GetItemDef(item).tier == itemTier)
+                    if (ItemCatalog.GetItemDef(item).tier == itemTier.tier)
                     {
                         inventory.ResetItem(item);
                     }
@@ -284,9 +283,9 @@ namespace BaddiesWithItems
                     ItemDef itemDef = ItemCatalog.GetItemDef(item);
                     if (ItemBlackList.Contains(itemDef))
                         continue;
-                    foreach (var itemTier in AvailableItemTiers)
+                    foreach (var itemTierDef in AvailableItemTierDefs)
                     {
-                        if (itemDef.tier == itemTier)
+                        if (itemDef.tier == itemTierDef.tier)
                         {
                             int count = inventory.GetItemCount(itemDef);
                             inventory.ResetItem(itemDef);
