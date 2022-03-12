@@ -120,7 +120,7 @@ namespace BaddiesWithItems
         {
             maxItemsToGenerate = 0;
 
-            if (InheritItems.Value || (UmbraModification.Value && inventory.GetItemCount(RoR2Content.Items.InvadingDoppelganger) > 0)) // inheritance
+            if (InheritItems.Value || (inventory.GetItemCount(RoR2Content.Items.InvadingDoppelganger) > 0 || inventory.GetItemCount(DLC1Content.Items.GummyCloneIdentifier) > 0)) // inheritance or umbrae, which inherit from players.
             {
 #if DEBUG
                 Debug.Log("Going to generate items from an inventory. " + inventory + " Master: " + masterToCopyFrom);
@@ -263,7 +263,10 @@ namespace BaddiesWithItems
 
         public static void CleanInventoryDependingOnConfigAndCopyFromMaster(Inventory inventory, CharacterMaster master)
         {
-            int isDoppel = inventory.GetItemCount(RoR2Content.Items.InvadingDoppelganger);
+            int doppelCount = inventory.GetItemCount(RoR2Content.Items.InvadingDoppelganger);
+            int gummyCount = inventory.GetItemCount(DLC1Content.Items.GummyCloneIdentifier);
+            bool alreadyInheriting = gummyCount > 0 || doppelCount > 0;
+
             if (master == null || master.inventory == null)
             {
 #if DEBUG
@@ -271,7 +274,8 @@ namespace BaddiesWithItems
 #endif
                 return;
             }
-            if (isDoppel <= 0)
+
+            if (!alreadyInheriting)
             {
                 foreach (ItemIndex item in inventory.itemAcquisitionOrder)
                 {
@@ -285,12 +289,9 @@ namespace BaddiesWithItems
                 }
 
                 inventory.CopyItemsFrom(master.inventory);
-                MultiplyAndLimitInventory(inventory);
             }
-            else
-            {
-                GetTargetOfDoppelganger(inventory);
-            }
+
+            BlacklistAndMultiplyAndLimitInventory(inventory, alreadyInheriting && UmbraeBlacklistLimitOperation.Value);
 
             if (EquipItems.Value)
             {
@@ -307,13 +308,23 @@ namespace BaddiesWithItems
                     }
                 }
             }
-            if (isDoppel > 0)
+
+            if (alreadyInheriting) //In case they lose the items at some point
             {
-                inventory.GiveItem(RoR2Content.Items.InvadingDoppelganger, isDoppel);
+                if (inventory.GetItemCount(RoR2Content.Items.InvadingDoppelganger) != doppelCount)
+                {
+                    inventory.ResetItem(RoR2Content.Items.InvadingDoppelganger);
+                    inventory.GiveItem(RoR2Content.Items.InvadingDoppelganger, doppelCount);
+                }
+                if (inventory.GetItemCount(DLC1Content.Items.GummyCloneIdentifier) != gummyCount)
+                {
+                    inventory.ResetItem(DLC1Content.Items.GummyCloneIdentifier);
+                    inventory.GiveItem(DLC1Content.Items.GummyCloneIdentifier, gummyCount);
+                }
             }
         }
 
-        public static void MultiplyAndLimitInventory(Inventory inventory)
+        public static void BlacklistAndMultiplyAndLimitInventory(Inventory inventory, bool alreadyInheriting = false)
         {
             float itemMultiplier = ConfigToFloat(ItemMultiplier.Value);
             ItemDef[] itemDefsScheduledForDeletion = new ItemDef[0];
@@ -333,7 +344,7 @@ namespace BaddiesWithItems
                     if (itemDef.tier == itemTierDef.tier)
                     {
                         int count = inventory.GetItemCount(itemDef);
-                        count = itemMultiplier != 1 ? count : (int)Math.Ceiling(count * itemMultiplier);
+                        count = itemMultiplier != 1 && !alreadyInheriting ? count : (int)Math.Ceiling(count * itemMultiplier);
                         //inventory.ResetItem(itemDef); We cannot reset item, that would modify the itemAcquisitionOrder collection.
                         inventory.RemoveItem(itemDef, inventory.GetItemCount(itemDef) - 1); //Leave it at one stack
                         if (LimitedItemsDictionary.ContainsKey(itemDef) && Limiter.Value)
@@ -359,44 +370,31 @@ namespace BaddiesWithItems
         }
 
         //Doppelganger fuckery because it seems that they do not get their targets assigned until one frame later
+        //Personally, this is very dirty, the whole deal of resetting the whole inventory and just redo what the game does.
         private static IEnumerator GetTargetOfDoppelganger(Inventory inventoryToCopyTo)
         {
             yield return new WaitForEndOfFrame();
 
             //Get the original master, wooo null checking galore
             BaseAI baseai = inventoryToCopyTo.gameObject.GetComponent<BaseAI>();
-            if (baseai == null)
+            if (baseai == null || baseai.currentEnemy.characterBody == null || baseai.currentEnemy.characterBody.master == null)
             {
 #if DEBUG
-                Debug.LogError("Setting up inventory for a doppelganger failed: BaseAI is null");
+                Debug.LogError("Setting up inventory for a doppelganger failed: BaseAI is " + baseai + " CharacterBody of the current enemy is " + baseai.currentEnemy.characterBody + " and master of that body is " + baseai.currentEnemy.characterBody.master);
 #endif
                 yield return null;
             }
-            if (baseai.currentEnemy.characterBody == null)
-            {
-#if DEBUG
-                Debug.LogError("Setting up inventory for a doppelganger failed: CharacterBody of the current enemy is null");
-#endif
-                yield return null;
-            }
-            if (baseai.currentEnemy.characterBody.master == null)
-            {
-#if DEBUG
-                Debug.LogError("Setting up inventory for a doppelganger failed: Master of the CharacterBody of the current enemy is null");
-#endif
-                yield return null;
-            }
-            CharacterMaster characterMaster = baseai.currentEnemy.characterBody.master;
-            if (characterMaster.playerCharacterMasterController)
+
+            if (baseai.currentEnemy.characterBody.master.playerCharacterMasterController)
             {
                 ResetAllItemsInInventory(inventoryToCopyTo);
-                inventoryToCopyTo.CopyItemsFrom(characterMaster.inventory);
-                if (UmbraItemMultiplier.Value)
+                inventoryToCopyTo.CopyItemsFrom(baseai.currentEnemy.characterBody.inventory);
+                if (UmbraeBlacklistLimitOperation.Value)
                 {
-                    MultiplyAndLimitInventory(inventoryToCopyTo);
+                    BlacklistAndMultiplyAndLimitInventory(inventoryToCopyTo);
                 }
 #if DEBUG
-                Debug.Log("Successfully set umbra inventory with " + characterMaster.playerCharacterMasterController.GetDisplayName() + " as base. Limited: " + UmbraItemMultiplier.Value);
+                Debug.Log("Successfully set umbra inventory with " + baseai.currentEnemy.characterBody.master.playerCharacterMasterController.GetDisplayName() + " as base. UmbraeBlacklistMultiplyLimitOperation: " + UmbraeBlacklistLimitOperation.Value);
 #endif
                 yield return null;
             }

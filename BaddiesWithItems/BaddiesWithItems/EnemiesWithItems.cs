@@ -45,8 +45,9 @@ namespace BaddiesWithItems
         public static ConfigEntry<bool> AutoBanItemAIBlacklisted;
         public static ConfigEntry<bool> AutoBanItemWorldUniqueAndScrap;
 
-        public static ConfigEntry<bool> UmbraModification;
-        public static ConfigEntry<bool> UmbraItemMultiplier;
+        //public static ConfigEntry<bool> UmbraModification;
+        public static ConfigEntry<bool> UmbraeBlacklistLimitOperation;
+        public static ConfigEntry<bool> UmbraeMultiplyOperation;
 
         public static ConfigEntry<string> DropChance;
 
@@ -93,7 +94,7 @@ namespace BaddiesWithItems
                 "Generator Settings",
                 "ItemMultiplier",
                 "1",
-                "Multiplies a item generation's amount by this.\nKeep in mind that limiters and caps will apply if possible after multiplication.");
+                "Multiplies a item generation's amount by this. If inhiring, it multiplies all stacks instead.\nKeep in mind that limiters and caps will apply if possible after multiplication.");
             
             MaxItemsToGenerateMultiplier = Config.Bind(
                 "Generator Settings",
@@ -118,7 +119,7 @@ namespace BaddiesWithItems
                 "Generator Settings",
                 "Limiter",
                 true,
-                "Should it clean up the enemies' inventories post item generation to accomodate the item limiter blacklist."
+                "Should it clean up the enemies' inventories post item generation to accomodate the item limiter blacklist. Affects normal and inherance generations."
                 );
 
             DropChance = Config.Bind(
@@ -191,19 +192,27 @@ namespace BaddiesWithItems
                "Enter item codenames as X-Y separated by a comma and a space to apply caps to certain items. X is the item code name and Y is the number cap. ex) PersonalShield-20, Syringe-5. A zero (0) makes the item be limited by the current number of cleared stages."
                );
 
-            UmbraModification = Config.Bind(
+            /*UmbraModification = Config.Bind(
                "Vengeance Configuration",
                "UmbraModification",
                false,
                "Whenever the mod should use a modified operation similar to InheritItems on characters that are considered umbrae.\nInheritItems is defined as: Toggles enemies to randomly inherit items from a random player."
+               );*/
+
+            UmbraeBlacklistLimitOperation = Config.Bind(
+               "Vengeance Configuration",
+               "UmbraeBlacklistLimitOperation",
+               false,
+               "If UmbraeBlacklistLimitOperation is true, should umbrae or gummy clones get their inventory go through a similar operation as normal inherance does:\n1. Blacklist, if InheranceBlacklist is enabled, 2. Multiply whole inventory by the current ItemMultiplier if UmbraeMultiplyOperation is enabled. 3. Limit items by the limiter list if the Limiter is enabled."
                );
 
-            UmbraItemMultiplier = Config.Bind(
+            UmbraeMultiplyOperation = Config.Bind(
                "Vengeance Configuration",
-               "UmbraItemMultiplier",
+               "UmbraeMultiplyOperation",
                false,
-               "If UmbraModification is true, should umbrae get their /whole inventory/ multiplied by the current ItemMultiplier.\nItemMultiplier is defined as: Multiplies a item generation's amount by this."
+               "If UmbraeMultiplyOperation and UmbraeBlacklistLimitOperation are true, should umbrae or gummy clones get their WHOLE inventory multiplied by the current ItemMultiplier."
                );
+
         }
 
         #region Lists

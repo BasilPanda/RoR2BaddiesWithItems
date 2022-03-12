@@ -53,6 +53,16 @@ Basil#7379 will *probably* be back when the the first DLC, Survivors of the Void
 	- A: While it is possible, having a good solution for this (so not using chat or console logs) is rather difficult to come up.
 
 ## Changelog
+**v3.0.4**
+- Config features
+	- Added a config for inheriting enemies to get items that exist in the blacklist get removed.
+	- Added a config for umbras or gummy clones to get their items blacklisted and limited.
+	- Added a config for umbras or gummy clones to get their WHOLE inventory multiplied.
+	- Added a config to multiply the maximum amount of items a enemy can generate in a whole gen cycle.
+	- Added a config so items that exceed the maximum amount of items in a whole gen cycle in a single gen cycle thanks to the item multiplier get capped properly.
+	
+- Fixes
+	- Fixed inherance not working due to how items were being removed.
 
 **v3.0.3**
 - Updated for Survivors of the Void
