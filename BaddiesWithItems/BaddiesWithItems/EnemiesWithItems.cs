@@ -13,7 +13,7 @@ namespace BaddiesWithItems
     public class EnemiesWithItems : BaseUnityPlugin
     {
         internal const string ModIdentifier = "EnemiesWithItems";
-        internal const string ModVer = "3.0.3";
+        internal const string ModVer = "3.0.4";
 
         public static EnemiesWithItems instance;
 
@@ -21,10 +21,13 @@ namespace BaddiesWithItems
 
         public static ConfigEntry<bool> GenerateItems;
         public static ConfigEntry<string> ItemMultiplier;
+        public static ConfigEntry<string> MaxItemsToGenerateMultiplier;
+        public static ConfigEntry<bool> FixItemMultiplierCaps;
         public static ConfigEntry<bool> Scaling;
 
         public static ConfigEntry<int> StageReq;
         public static ConfigEntry<bool> InheritItems;
+        public static ConfigEntry<bool> InheranceBlacklist;
 
         public static ConfigEntry<string> EquipGenChance;
 
@@ -41,6 +44,9 @@ namespace BaddiesWithItems
         public static ConfigEntry<bool> AutoBanEquipElite;
         public static ConfigEntry<bool> AutoBanItemAIBlacklisted;
         public static ConfigEntry<bool> AutoBanItemWorldUniqueAndScrap;
+
+        public static ConfigEntry<bool> UmbraModification;
+        public static ConfigEntry<bool> UmbraItemMultiplier;
 
         public static ConfigEntry<string> DropChance;
 
@@ -59,7 +65,7 @@ namespace BaddiesWithItems
                 "Generator Settings",
                 "ScaleAllPlayers",
                 true,
-                "Toggles how the mod balances potential item amount per enemy. True: Total items of all players False: Average item count from players"
+                "Toggles how the mod balances potential item amount per enemy.\nTrue: Total items of all players\nFalse: Average item count from players"
             );
 
             EquipGenChance = Config.Bind(
@@ -73,7 +79,14 @@ namespace BaddiesWithItems
                 "Generator Settings",
                 "InheritItems",
                 false,
-                "Toggles enemies to randomly inherit items from a random player. Overrides Generator Settings."
+                "Toggles enemies to randomly inherit items from a random player.\nOverrides Generator Settings."
+                );
+
+            InheranceBlacklist = Config.Bind(
+                "Generator Settings",
+                "InheranceBlacklist",
+                false,
+                "Should enemies that inherit items get their items removed depending on the item blacklist. Default to false to don't mess third-party item additions."
                 );
 
             ItemMultiplier = Config.Bind(
@@ -81,6 +94,18 @@ namespace BaddiesWithItems
                 "ItemMultiplier",
                 "1",
                 "Multiplies a item generation's amount by this.\nKeep in mind that limiters and caps will apply if possible after multiplication.");
+            
+            MaxItemsToGenerateMultiplier = Config.Bind(
+                "Generator Settings",
+                "MaxItemsToGenerateMultiplier",
+                "1",
+                "Multiplies the maximum amount of items to generate by this.\nExtremely destructive, and scales over time. Not recommended.");
+
+            FixItemMultiplierCaps = Config.Bind(
+                "Generator Settings",
+                "FixItemMultiplierCaps",
+                true,
+                "Whenever item amounts that exceed the current generation cap thanks to a modified ItemMultiplier value should get capped or not.\nSet to false for pre-3.0.4 behavior.");
 
             StageReq = Config.Bind(
                 "General Settings",
@@ -100,7 +125,7 @@ namespace BaddiesWithItems
                 "General Settings",
                 "DropChance",
                 "0.1",
-                "Sets the percent chance that an enemy drops one of their items. Default 0.1 means average 1 in a 1000 kills will result in a drop.\nSet to zero (0) to disable dropping."
+                "Sets the percent chance that an enemy drops one of their items.\nDefault 0.1 means average 1 in a 1000 kills will result in a drop.\nSet to zero (0) to disable dropping."
                 );
 
             ConfigItemTiersEnabledWeights = Config.Bind(
@@ -164,6 +189,20 @@ namespace BaddiesWithItems
                "ConfigItemLimiter",
                "HealWhileSafe-10, SlowOnHit-1, Medkit-4, Behemoth-2, BleedOnHit-3, IgniteOnKill-2, AutoCastEquipment-1, NearbyDamageBonus-3, DeathMark-0, ArmorPlate-0",
                "Enter item codenames as X-Y separated by a comma and a space to apply caps to certain items. X is the item code name and Y is the number cap. ex) PersonalShield-20, Syringe-5. A zero (0) makes the item be limited by the current number of cleared stages."
+               );
+
+            UmbraModification = Config.Bind(
+               "Vengeance Configuration",
+               "UmbraModification",
+               false,
+               "Whenever the mod should use a modified operation similar to InheritItems on characters that are considered umbrae.\nInheritItems is defined as: Toggles enemies to randomly inherit items from a random player."
+               );
+
+            UmbraItemMultiplier = Config.Bind(
+               "Vengeance Configuration",
+               "UmbraItemMultiplier",
+               false,
+               "If UmbraModification is true, should umbrae get their /whole inventory/ multiplied by the current ItemMultiplier.\nItemMultiplier is defined as: Multiplies a item generation's amount by this."
                );
         }
 

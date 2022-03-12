@@ -1,4 +1,5 @@
 ﻿using RoR2;
+using RoR2.CharacterAI;
 using System;
 using System.Collections;
 using System.Linq;
@@ -119,7 +120,7 @@ namespace BaddiesWithItems
         {
             maxItemsToGenerate = 0;
 
-            if (InheritItems.Value) // inheritance
+            if (InheritItems.Value || (UmbraModification.Value && inventory.GetItemCount(RoR2Content.Items.InvadingDoppelganger) > 0)) // inheritance
             {
 #if DEBUG
                 Debug.Log("Going to generate items from an inventory. " + inventory + " Master: " + masterToCopyFrom);
@@ -145,9 +146,18 @@ namespace BaddiesWithItems
                 if (!Scaling.Value)  // More balanced behavior, using the average of all players
                     maxItemsToGenerate = (int)Math.Pow(Run.instance.stageClearCount + 1, 2) + (_cachedTotalItemCount / _cachedPlayerCount);
 
+                float destruction = ConfigToFloat(MaxItemsToGenerateMultiplier.Value);
+                if (destruction != 1)
+                {
+#if DEBUG
+                    Debug.Log("Modifying maximum amount of items to generate by " + destruction + " original amount: " + maxItemsToGenerate + " target amount: " + Mathf.CeilToInt(maxItemsToGenerate * destruction));
+#endif
+                    maxItemsToGenerate = Mathf.CeilToInt(maxItemsToGenerate * destruction);
+                }
+
                 int currentFailedAttempts = 0;
                 int currentItemsGenerated = 0;
-                while (currentItemsGenerated <= maxItemsToGenerate && currentFailedAttempts <= maxFailedAttempts)
+                while (currentItemsGenerated < maxItemsToGenerate && currentFailedAttempts <= maxFailedAttempts)
                 {
                     ItemDef evaluation = EvaluateItem();
                     if (evaluation == null || evaluation.itemIndex == ItemIndex.None || Run.instance.IsItemExpansionLocked(evaluation.itemIndex))
@@ -163,6 +173,9 @@ namespace BaddiesWithItems
                         currentItemTierCap = ItemTierCaps[i];
                         if (inventory.GetTotalItemCountOfTier(AvailableItemTierDefs[i].tier) > currentItemTierCap && currentItemTierCap > 0)
                         {
+#if DEBUG
+                            Debug.LogError("Generation failed due to item tier limitation: " + currentItemTierCap + " items of tier " + AvailableItemTierDefs[i].tier);
+#endif
                             currentFailedAttempts++;
                             continue;
                         }
@@ -171,7 +184,7 @@ namespace BaddiesWithItems
                     int amountToGive = UnityEngine.Random.Range(0, Mathf.Max((maxItemsToGenerate - currentItemsGenerated), 1));
                     //int amountToGive = UnityEngine.Random.Range(0, maxItemsToGenerate);
                     float configItemMultiplier = ConfigToFloat(ItemMultiplier.Value);
-                    if (configItemMultiplier != 1 && configItemMultiplier != 0)
+                    if (configItemMultiplier != 1f && configItemMultiplier != 0f)
                         amountToGive = Mathf.CeilToInt(amountToGive * configItemMultiplier);
                     if (amountToGive <= 0)
                     {
@@ -184,18 +197,26 @@ namespace BaddiesWithItems
                         currentGenCap = ((from kvp in LimitedItemsDictionary where kvp.Key == evaluation select kvp.Value)).FirstOrDefault();
                         if (currentGenCap <= 0)
                             amountToGive = Run.instance.stageClearCount + 1;
+#if DEBUG
+                        Debug.LogWarning("The limiter is on, and we found a item that is meant to be limited: " + evaluation + " amountToGive: " + amountToGive + " currentGenCap: " + currentGenCap + " current stage: " + Run.instance.stageClearCount + 1);
+#endif
                     }
-                    else if (amountToGive > currentGenCap && currentGenCap > 0)
+                    if (amountToGive > currentGenCap && currentGenCap > 0)
                         amountToGive = currentGenCap;
+
+                    if (FixItemMultiplierCaps.Value && amountToGive > maxItemsToGenerate - currentItemsGenerated)
+                    {
+                        amountToGive = maxItemsToGenerate - currentItemsGenerated;
+                    }
 
                     inventory.GiveItem(evaluation, amountToGive);
                     currentItemsGenerated += amountToGive;
 #if DEBUG
-                    Debug.Log("A single gen cycle complete, currentItemsGenerated: " + currentItemsGenerated + " amountToGive: " + amountToGive + " currentGenCap: " + currentGenCap);
+                    Debug.Log("A single gen cycle complete, currentItemsGenerated: " + currentItemsGenerated + " amountToGive: " + amountToGive + " currentGenCap: " + currentGenCap + " ItemGenerated: " + evaluation);
 #endif
                 };
 #if DEBUG
-                Debug.Log("Max Items To Generate: " + maxItemsToGenerate + " Amount of items Added: " + currentItemsGenerated + " Amount of failed rerolls: " + currentFailedAttempts);
+                Debug.Log("Gen cycles complete. MaxItemsToGenerate: " + maxItemsToGenerate + " AmountOfItemsAdded: " + currentItemsGenerated + " FailedRerolls: " + currentFailedAttempts);
 #endif
             }
 
@@ -204,7 +225,7 @@ namespace BaddiesWithItems
                 if (PickupLists.finalEquipmentDefs == null || PickupLists.finalEquipmentDefs.Length <= 0)
                 {
 #if DEBUG
-                    Debug.LogError("Cannot generate equips as equipmentDefs is empty or null.");
+                    Debug.LogError("Cannot generate equips as finalEquipmentDefs is empty or null.");
 #endif
                     return;
                 }
@@ -232,7 +253,7 @@ namespace BaddiesWithItems
             }
         }
 
-        public static void CleanInventory(Inventory inventory)
+        public static void ResetAllItemsInInventory(Inventory inventory)
         {
             foreach (ItemIndex item in inventory.itemAcquisitionOrder)
             {
@@ -242,19 +263,34 @@ namespace BaddiesWithItems
 
         public static void CleanInventoryDependingOnConfigAndCopyFromMaster(Inventory inventory, CharacterMaster master)
         {
-            foreach (ItemIndex item in inventory.itemAcquisitionOrder)
+            int isDoppel = inventory.GetItemCount(RoR2Content.Items.InvadingDoppelganger);
+            if (master == null || master.inventory == null)
             {
-                foreach (ItemTierDef itemTier in AvailableItemTierDefs)
+#if DEBUG
+                Debug.LogError("Cannot copy inventory from master as master is " + master + " and its inventory is " + master.inventory);
+#endif
+                return;
+            }
+            if (isDoppel <= 0)
+            {
+                foreach (ItemIndex item in inventory.itemAcquisitionOrder)
                 {
-                    if (ItemCatalog.GetItemDef(item).tier == itemTier.tier)
+                    foreach (ItemTierDef itemTier in AvailableItemTierDefs)
                     {
-                        inventory.ResetItem(item);
+                        if (ItemCatalog.GetItemDef(item).tier == itemTier.tier)
+                        {
+                            inventory.ResetItem(item);
+                        }
                     }
                 }
-            }
 
-            inventory.CopyItemsFrom(master.inventory);
-            MultiplyCurrentItems(inventory);
+                inventory.CopyItemsFrom(master.inventory);
+                MultiplyAndLimitInventory(inventory);
+            }
+            else
+            {
+                GetTargetOfDoppelganger(inventory);
+            }
 
             if (EquipItems.Value)
             {
@@ -271,32 +307,106 @@ namespace BaddiesWithItems
                     }
                 }
             }
-        }
-
-        public static void MultiplyCurrentItems(Inventory inventory)
-        {
-            float itemMultiplier = ConfigToFloat(ItemMultiplier.Value);
-            if (itemMultiplier != 1f)
+            if (isDoppel > 0)
             {
-                foreach (ItemIndex item in inventory.itemAcquisitionOrder)
-                {
-                    ItemDef itemDef = ItemCatalog.GetItemDef(item);
-                    if (ItemBlackList.Contains(itemDef))
-                        continue;
-                    foreach (var itemTierDef in AvailableItemTierDefs)
-                    {
-                        if (itemDef.tier == itemTierDef.tier)
-                        {
-                            int count = inventory.GetItemCount(itemDef);
-                            inventory.ResetItem(itemDef);
-                            inventory.GiveItem(itemDef, (int)Math.Ceiling(count * itemMultiplier));
-                        }
-                    }
-                }
+                inventory.GiveItem(RoR2Content.Items.InvadingDoppelganger, isDoppel);
             }
         }
 
+        public static void MultiplyAndLimitInventory(Inventory inventory)
+        {
+            float itemMultiplier = ConfigToFloat(ItemMultiplier.Value);
+            ItemDef[] itemDefsScheduledForDeletion = new ItemDef[0];
+            foreach (ItemIndex item in inventory.itemAcquisitionOrder)
+            {
+                ItemDef itemDef = ItemCatalog.GetItemDef(item);
+                if (ItemBlackList.Contains(itemDef))
+                {
+                    if (InheranceBlacklist.Value)
+                    {
+                        HG.ArrayUtils.ArrayAppend<ItemDef>(ref itemDefsScheduledForDeletion, itemDef);
+                    }
+                    continue;
+                }
+                foreach (var itemTierDef in AvailableItemTierDefs)
+                {
+                    if (itemDef.tier == itemTierDef.tier)
+                    {
+                        int count = inventory.GetItemCount(itemDef);
+                        count = itemMultiplier != 1 ? count : (int)Math.Ceiling(count * itemMultiplier);
+                        //inventory.ResetItem(itemDef); We cannot reset item, that would modify the itemAcquisitionOrder collection.
+                        inventory.RemoveItem(itemDef, inventory.GetItemCount(itemDef) - 1); //Leave it at one stack
+                        if (LimitedItemsDictionary.ContainsKey(itemDef) && Limiter.Value)
+                        {
+                            count = ((from kvp in LimitedItemsDictionary where kvp.Key == itemDef select kvp.Value)).FirstOrDefault();
+                            if (count <= 0)
+                                count = Run.instance.stageClearCount + 1;
+#if DEBUG
+                            Debug.LogWarning("Inherance: The limiter is on, and we found a item that is meant to be limited: " + itemDef + " amountToGive: " + count + " current stage: " + Run.instance.stageClearCount + 1);
+#endif
+                        }
+                        inventory.GiveItem(itemDef, count - 1);
+                    }
+                }
+            }
+            foreach (ItemDef delet in itemDefsScheduledForDeletion)
+            {
+                inventory.ResetItem(delet);
+#if DEBUG
+                Debug.LogWarning("Inherance: deleted " + delet + " as it was in the blacklist.");
+#endif
+            }
+        }
+
+        //Doppelganger fuckery because it seems that they do not get their targets assigned until one frame later
+        private static IEnumerator GetTargetOfDoppelganger(Inventory inventoryToCopyTo)
+        {
+            yield return new WaitForEndOfFrame();
+
+            //Get the original master, wooo null checking galore
+            BaseAI baseai = inventoryToCopyTo.gameObject.GetComponent<BaseAI>();
+            if (baseai == null)
+            {
+#if DEBUG
+                Debug.LogError("Setting up inventory for a doppelganger failed: BaseAI is null");
+#endif
+                yield return null;
+            }
+            if (baseai.currentEnemy.characterBody == null)
+            {
+#if DEBUG
+                Debug.LogError("Setting up inventory for a doppelganger failed: CharacterBody of the current enemy is null");
+#endif
+                yield return null;
+            }
+            if (baseai.currentEnemy.characterBody.master == null)
+            {
+#if DEBUG
+                Debug.LogError("Setting up inventory for a doppelganger failed: Master of the CharacterBody of the current enemy is null");
+#endif
+                yield return null;
+            }
+            CharacterMaster characterMaster = baseai.currentEnemy.characterBody.master;
+            if (characterMaster.playerCharacterMasterController)
+            {
+                ResetAllItemsInInventory(inventoryToCopyTo);
+                inventoryToCopyTo.CopyItemsFrom(characterMaster.inventory);
+                if (UmbraItemMultiplier.Value)
+                {
+                    MultiplyAndLimitInventory(inventoryToCopyTo);
+                }
+#if DEBUG
+                Debug.Log("Successfully set umbra inventory with " + characterMaster.playerCharacterMasterController.GetDisplayName() + " as base. Limited: " + UmbraItemMultiplier.Value);
+#endif
+                yield return null;
+            }
+#if DEBUG
+            Debug.Log("Setting up inventory for a doppelganger failed: turns out that the master isn't a player, aborting");
+#endif
+        }
+
         private const int maxFailedAttempts = 5;
+
         [ConCommand(commandName = "ewi_midRunData", flags = ConVarFlags.SenderMustBeServer, helpText = "Shows data specific to the run. Only usable in a run.")]
         private static void PrintMidRunData(ConCommandArgs args)
         {

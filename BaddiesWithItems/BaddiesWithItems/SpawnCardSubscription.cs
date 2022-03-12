@@ -81,6 +81,7 @@ namespace BaddiesWithItems
             {
                 //Xoroshiro throws off a range issue here at the beginning of the run, might have something to do with Run.instance.livingPlayerCount being zero in the very first frame.
                 CharacterMaster playerToCopyFrom = PlayerCharacterMasterController.instances[RoR2.Run.instance.nextStageRng.RangeInt(0, Run.instance.livingPlayerCount)].master;
+                playerToCopyFrom = playerToCopyFrom == null ? PlayerCharacterMasterController.instances[0].master : playerToCopyFrom; //Failsafe, return to zero.
                 ItemGeneration.GenerateItemsToInventory(spawnResultMaster.inventory, playerToCopyFrom);
             }
         }
