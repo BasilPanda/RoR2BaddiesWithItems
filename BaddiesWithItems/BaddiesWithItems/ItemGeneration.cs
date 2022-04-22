@@ -198,7 +198,7 @@ namespace BaddiesWithItems
                         if (currentGenCap <= 0)
                             amountToGive = Run.instance.stageClearCount + 1;
 #if DEBUG
-                        Debug.LogWarning("The limiter is on, and we found a item that is meant to be limited: " + evaluation + " amountToGive: " + amountToGive + " currentGenCap: " + currentGenCap + " current stage: " + Run.instance.stageClearCount + 1);
+                        Debug.LogWarning("The limiter is on, and we found a item that is meant to be limited: " + evaluation + " amountToGive: " + amountToGive + " currentGenCap: " + currentGenCap + " current stage: " + (Run.instance.stageClearCount + 1));
 #endif
                     }
                     if (amountToGive > currentGenCap && currentGenCap > 0)
