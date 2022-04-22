@@ -162,6 +162,9 @@ namespace BaddiesWithItems
                     ItemDef evaluation = EvaluateItem();
                     if (evaluation == null || evaluation.itemIndex == ItemIndex.None || Run.instance.IsItemExpansionLocked(evaluation.itemIndex))
                     {
+#if DEBUG
+                        Debug.LogError("GEN FAILED: item index: " + evaluation.itemIndex + " is expansion locked: " + Run.instance.IsItemExpansionLocked(evaluation.itemIndex));
+#endif
                         currentFailedAttempts++;
                         continue;
                     }
@@ -174,20 +177,23 @@ namespace BaddiesWithItems
                         if (inventory.GetTotalItemCountOfTier(AvailableItemTierDefs[i].tier) > currentItemTierCap && currentItemTierCap > 0)
                         {
 #if DEBUG
-                            Debug.LogError("Generation failed due to item tier limitation: " + currentItemTierCap + " items of tier " + AvailableItemTierDefs[i].tier);
+                            Debug.LogError("GEN FAILED: due to item tier limitation: " + currentItemTierCap + " items of tier " + AvailableItemTierDefs[i].tier);
 #endif
                             currentFailedAttempts++;
                             continue;
                         }
                     }
 
-                    int amountToGive = UnityEngine.Random.Range(0, Mathf.Max((maxItemsToGenerate - currentItemsGenerated), 1));
+                    int amountToGive = UnityEngine.Random.Range(1, Mathf.Max((maxItemsToGenerate - currentItemsGenerated), 1));
                     //int amountToGive = UnityEngine.Random.Range(0, maxItemsToGenerate);
                     float configItemMultiplier = ConfigToFloat(ItemMultiplier.Value);
                     if (configItemMultiplier != 1f && configItemMultiplier != 0f)
                         amountToGive = Mathf.CeilToInt(amountToGive * configItemMultiplier);
                     if (amountToGive <= 0)
                     {
+#if DEBUG
+                        Debug.LogError("GEN FAILED: because the amountToGive was zero or less (" + amountToGive + ") after multiplying by configItemMultiplier ( "+ configItemMultiplier + " )");
+#endif
                         currentFailedAttempts++;
                         continue;
                     }

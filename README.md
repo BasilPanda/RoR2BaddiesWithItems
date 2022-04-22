@@ -53,6 +53,11 @@ Basil#7379 will *probably* be back when the the first DLC, Survivors of the Void
 	- A: While it is possible, having a good solution for this (so not using chat or console logs) is rather difficult to come up.
 
 ## Changelog
+**v3.0.5**
+- Recompiled for 1.2.3.1
+	- Thats literally everything, other than that enemies will now always generate at least 1 item each roll so generation rolls don't get wasted.
+	- And added some other failsafe.
+	
 **v3.0.4**
 - Config features
 	- Added a config for inheriting enemies to get items that exist in the blacklist get removed.
