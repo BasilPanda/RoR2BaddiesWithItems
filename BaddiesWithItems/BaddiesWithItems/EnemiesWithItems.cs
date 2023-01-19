@@ -9,11 +9,11 @@ using UnityEngine;
 
 namespace BaddiesWithItems
 {
-    [BepInPlugin("com.Basil." + ModIdentifier, ModIdentifier, ModVer)]
+    [BepInPlugin("com.Anreol." + ModIdentifier, ModIdentifier, ModVer)]
     public class EnemiesWithItems : BaseUnityPlugin
     {
         internal const string ModIdentifier = "EnemiesWithItems";
-        internal const string ModVer = "3.0.5";
+        internal const string ModVer = "3.0.6";
 
         public static EnemiesWithItems instance;
 
@@ -133,14 +133,14 @@ namespace BaddiesWithItems
                "General Settings",
                "ConfigItemTiersWeights",
                "Tier1-40, Tier2-20, Tier3-1, Lunar-0.5",
-               "Percentage chance of items of a certain tier to be generated.\nEnter the names of item tiers as X-Y separated by a comma and a space. X as tier name & Y as percentage. ex) Tier1-40, Tier2-20, VoidTier1-2.\nA item tier lacking an entry here WILL NOT be generated."
+               "Percentage chance of items of a certain Item Tier enum (to be queried to ItemTierDef) to be generated.\nEnter the names of Item Tiers as X-Y separated by a comma and a space. X as tier name & Y as percentage. ex) Tier1-40, Tier2-20, VoidTier1-2.\nA item tier lacking an entry here WILL NOT be generated."
                );
 
             ConfigItemTiersCaps = Config.Bind(
                "General Settings",
                "ConfigItemTiersCaps",
                "Tier1-0, Tier2-0, Tier3-0, Lunar-0",
-               "Max of items of a certain tier to be generated.\nEnter the names of item tiers as X-Y separated by a comma and a space. X as tier name & Y as percentage. ex) Tier1-40, Tier2-20, VoidTier1-2.\nA zero (0) disables the cap. Item tiers lacking an entry here, but that exists in ConfigItemTiersEnabledWeights will default to zero."
+               "Max of items of a certain Item Tier enum (to be queried to ItemTierDef) to be generated.\nEnter the names of the Item Tiers as X-Y separated by a comma and a space. X as tier name & Y as percentage. ex) Tier1-40, Tier2-20, VoidTier1-2.\nA zero (0) disables the cap. Item tiers lacking an entry here, but that exists in ConfigItemTiersEnabledWeights/ConfigItemTiersWeights will default to zero."
                );
 
             EquipItems = Config.Bind(
@@ -175,21 +175,21 @@ namespace BaddiesWithItems
                 "Ban Lists",
                 "ConfigItemBlacklist",
                 "Missile, Bear, ExplodeOnDeath, NovaOnHeal, BounceNearby, StickyBomb, RoboBallBuddy",
-                "Enter item code name separated by a comma and a space to blacklist certain items. ex) PersonalShield, Syringe\nItem names: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names"
+                "Enter ItemDef names separated by a comma and a space to blacklist certain items. ex) PersonalShield, Syringe\nBasegame ItemDef names: https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Items-and-Equipments-Data/"
                 );
 
             ConfigEquipBlacklist = Config.Bind(
                "Ban Lists",
                "ConfigEquipBlacklist",
                "CommandMissile, Blackhole, GhostGun, DroneBackup, OrbitalLaser, BFG, Enigma, Lightning, GoldGat, BurnNearby, Scanner, Gateway, FireBallDash, Recycle",
-               "Enter equipment codenames separated by a comma and a space to blacklist certain equipments. ex) Saw, DroneBackup\nEquip names: https://github.com/risk-of-thunder/R2Wiki/wiki/Item-&-Equipment-IDs-and-Names"
+               "Enter EquipmentDef names separated by a comma and a space to blacklist certain equipments. ex) Saw, DroneBackup\nBasegame EquipmentDef names: https://risk-of-thunder.github.io/R2Wiki/Mod-Creation/Developer-Reference/Items-and-Equipments-Data/#equipments"
                );
 
             ConfigItemLimiter = Config.Bind(
                "Ban Lists",
                "ConfigItemLimiter",
                "HealWhileSafe-10, SlowOnHit-1, Medkit-4, Behemoth-2, BleedOnHit-3, IgniteOnKill-2, AutoCastEquipment-1, NearbyDamageBonus-3, DeathMark-0, ArmorPlate-0",
-               "Enter item codenames as X-Y separated by a comma and a space to apply caps to certain items. X is the item code name and Y is the number cap. ex) PersonalShield-20, Syringe-5. A zero (0) makes the item be limited by the current number of cleared stages."
+               "Enter ItemDef names as X-Y separated by a comma and a space to apply caps to certain items. X is the item code name and Y is the number cap. ex) PersonalShield-20, Syringe-5. A zero (0) makes the item be limited by the current number of cleared stages."
                );
 
             /*UmbraModification = Config.Bind(
