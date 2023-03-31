@@ -13,7 +13,7 @@ namespace BaddiesWithItems
     public class EnemiesWithItems : BaseUnityPlugin
     {
         internal const string ModIdentifier = "EnemiesWithItems";
-        internal const string ModVer = "3.0.6";
+        internal const string ModVer = "3.0.7";
 
         public static EnemiesWithItems instance;
 
@@ -26,7 +26,7 @@ namespace BaddiesWithItems
         public static ConfigEntry<bool> Scaling;
 
         public static ConfigEntry<int> StageReq;
-        public static ConfigEntry<bool> InheritItems;
+        public static ConfigEntry<string> InheritItemsChance;
         public static ConfigEntry<bool> InheranceBlacklist;
 
         public static ConfigEntry<string> EquipGenChance;
@@ -76,18 +76,18 @@ namespace BaddiesWithItems
                 "The percent chance for generating a Use item."
                 );
 
-            InheritItems = Config.Bind(
+            InheritItemsChance = Config.Bind(
                 "Generator Settings",
-                "InheritItems",
-                false,
-                "Toggles enemies to randomly inherit items from a random player.\nOverrides Generator Settings."
+                "InheritItemsChance",
+                "0",
+                "Percent chance for enemies to randomly inherit items from a random player.\nOverrides Generator Settings whenever it happens.\nSet to zero (0) or less to disable."
                 );
 
             InheranceBlacklist = Config.Bind(
                 "Generator Settings",
                 "InheranceBlacklist",
                 false,
-                "Should enemies that inherit items get their items removed depending on the item blacklist. Default to false to don't mess third-party item additions."
+                "Should enemies that inherit items, including doppelgangers or gummy clones get their items removed depending on the item blacklist. Default to false to don't mess third-party item additions."
                 );
 
             ItemMultiplier = Config.Bind(
@@ -459,6 +459,12 @@ namespace BaddiesWithItems
                     }
                 }
             }
+        }
+
+        [ConCommand(commandName = "ewi_help", flags = ConVarFlags.None, helpText = "Lists all Enemies with Items commands.")]
+        private static void ShowHelp(ConCommandArgs args)
+        {
+            Debug.Log("ewi_reloadconfig - Reloads the config file, server only.\newi_dumpItemBlackList - Dumps the currently loaded item blacklist.\newi_dumpEquipBlackList - Dumps the currently loaded equipment blacklist.\newi_dumpLimiterBlackList - Dumps the currently loaded item limiter dictionary.\newi_dumpAllItemTierData - Dumps all the currently loaded arrays related to ItemTiers.\newi_dumpItemPool - Dumps the currently loaded item pool, which enemies will generate items from.\newi_dumpEquipPool - Dumps the currently loaded equipment pool, which enemies will generate equipment from.\newi_midRunData - Shows data specific to the run, such as expected amount of items to generate. Only usable in a run.");
         }
 
         [ConCommand(commandName = "ewi_reloadconfig", flags = ConVarFlags.SenderMustBeServer, helpText = "Reloads the config file, server only.")]

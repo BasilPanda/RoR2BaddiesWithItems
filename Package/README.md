@@ -47,6 +47,13 @@ Please contact Anreol#8231 on Discord for any issues or interests!
 	- A: While it is possible, having a good solution for this (so not using chat or console logs) is rather difficult to come up.
 
 ## Changelog
+**v3.0.7**
+- Player item inherance is now a float instead of a true / false activation.
+- If inherance blacklist is enabled, it will now check twice for violating items.
+	- This should have no performance hit / barely any performance hit, as its replacing one of the game's filter functions with a custom one.
+
+- Fixed a issue regarding the usage of a base game's method which led to unintentional behavior whenever inherance was enabled.
+
 **v3.0.6**
 - Changed the mod's GUID to my username as I'm (Anreol) the one maintaining the mod right now
 	- This means config file might get regenerated, just copy and paste the old stuff into the new file

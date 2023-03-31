@@ -24,6 +24,19 @@ namespace BaddiesWithItems
             PlayerCharacterMasterController.onPlayerRemoved += onPlayerRemoved;
         }
 
+        public static readonly Func<ItemIndex, bool> ewiDefaultItemCopyFilterDelegate = new Func<ItemIndex, bool>(EwiDefaultItemCopyFilter);
+        public static readonly Func<ItemIndex, bool> ewiBlacklistItemCopyFilterDelegate = new Func<ItemIndex, bool>(EwiBlacklistCopyFilter);
+
+        private static bool EwiDefaultItemCopyFilter(ItemIndex itemIndex)
+        {
+            return true;
+        }
+
+        private static bool EwiBlacklistCopyFilter(ItemIndex itemIndex)
+        {
+            return !ItemBlackList.Contains(ItemCatalog.GetItemDef(itemIndex));
+        }
+
         private static void onServerGameOver(Run arg1, GameEndingDef arg2)
         {
             _cachedTotalItemCount = 0;
@@ -120,7 +133,8 @@ namespace BaddiesWithItems
         {
             maxItemsToGenerate = 0;
 
-            if (InheritItems.Value || (inventory.GetItemCount(RoR2Content.Items.InvadingDoppelganger) > 0 || inventory.GetItemCount(DLC1Content.Items.GummyCloneIdentifier) > 0)) // inheritance or umbrae, which inherit from players.
+            bool inheritConfig = (ConfigToFloat(InheritItemsChance.Value) > 0f && UnityEngine.Random.Range(0f, 100f) <= ConfigToFloat(InheritItemsChance.Value));
+            if (inheritConfig || (inventory.GetItemCount(RoR2Content.Items.InvadingDoppelganger) > 0 || inventory.GetItemCount(DLC1Content.Items.GummyCloneIdentifier) > 0)) // inheritance or umbrae, which inherit from players.
             {
 #if DEBUG
                 Debug.Log("Going to generate items from an inventory. " + inventory + " Master: " + masterToCopyFrom);
@@ -236,14 +250,11 @@ namespace BaddiesWithItems
                     return;
                 }
                 EquipmentDef equipmentDef = EvaluateEquipment();
-                if (equipmentDef != null)
+                if (equipmentDef != null && equipmentDef.equipmentIndex != EquipmentIndex.None && !Run.instance.IsEquipmentExpansionLocked(equipmentDef.equipmentIndex))
                 {
-                    if (equipmentDef.equipmentIndex != EquipmentIndex.None && !Run.instance.IsEquipmentExpansionLocked(equipmentDef.equipmentIndex))
-                    {
-                        inventory.ResetItem(RoR2Content.Items.AutoCastEquipment);
-                        inventory.GiveItem(RoR2Content.Items.AutoCastEquipment);
-                        inventory.SetEquipmentIndex(equipmentDef.equipmentIndex);
-                    }
+                    inventory.ResetItem(RoR2Content.Items.AutoCastEquipment);
+                    inventory.GiveItem(RoR2Content.Items.AutoCastEquipment);
+                    inventory.SetEquipmentIndex(equipmentDef.equipmentIndex);
                 }
             }
 
@@ -267,6 +278,11 @@ namespace BaddiesWithItems
             }
         }
 
+        /// <summary>
+        /// Currently only gets called if the inherance from the <see cref="InheritItemsChance"/> roll passes, or contains a doppelganger or gummy clone identifier items.
+        /// </summary>
+        /// <param name="inventory"> <see cref="RoR2.Inventory"/> in the recieving end to perform the cleaning operation on.</param>
+        /// <param name="master"> <see cref="RoR2.CharacterMaster"/> it's going to be copying from.</param>
         public static void CleanInventoryDependingOnConfigAndCopyFromMaster(Inventory inventory, CharacterMaster master)
         {
             int doppelCount = inventory.GetItemCount(RoR2Content.Items.InvadingDoppelganger);
@@ -294,7 +310,9 @@ namespace BaddiesWithItems
                     }
                 }
 
-                inventory.CopyItemsFrom(master.inventory);
+                //Did you know? CopyItemsFrom deletes all items from the target inventory, use AddItemsFrom instead!
+                //inventory.CopyItemsFrom(master.inventory);
+                inventory.AddItemsFrom(master.inventory, InheranceBlacklist.Value ? ewiBlacklistItemCopyFilterDelegate : ewiDefaultItemCopyFilterDelegate);
             }
 
             BlacklistAndMultiplyAndLimitInventory(inventory, alreadyInheriting && UmbraeBlacklistLimitOperation.Value);
@@ -330,6 +348,11 @@ namespace BaddiesWithItems
             }
         }
 
+        /// <summary>
+        /// Goes through every item in <paramref name="inventory"/> makes sure it doesnt contain blacklisted items, multiplies items according to <see cref="ItemMultiplier"/> and makes sure stacks don't exceed limit count if <see cref="Limiter"/> is true.
+        /// </summary>
+        /// <param name="inventory">Subject inventory</param>
+        /// <param name="alreadyInheriting">In this method, true makes it multiply item counts according to <see cref="ItemMultiplier"/></param>
         public static void BlacklistAndMultiplyAndLimitInventory(Inventory inventory, bool alreadyInheriting = false)
         {
             float itemMultiplier = ConfigToFloat(ItemMultiplier.Value);
@@ -337,13 +360,13 @@ namespace BaddiesWithItems
             foreach (ItemIndex item in inventory.itemAcquisitionOrder)
             {
                 ItemDef itemDef = ItemCatalog.GetItemDef(item);
-                if (ItemBlackList.Contains(itemDef))
+                if (ItemBlackList.Contains(itemDef)) //If it's a blacklisted
                 {
-                    if (InheranceBlacklist.Value)
+                    if (InheranceBlacklist.Value) //If its set to delete blacklisted items, also add them to a list to delete later.
                     {
                         HG.ArrayUtils.ArrayAppend<ItemDef>(ref itemDefsScheduledForDeletion, itemDef);
                     }
-                    continue;
+                    continue; //Skip limiting operation
                 }
                 foreach (var itemTierDef in AvailableItemTierDefs)
                 {
@@ -394,7 +417,9 @@ namespace BaddiesWithItems
             if (baseai.currentEnemy.characterBody.master.playerCharacterMasterController)
             {
                 ResetAllItemsInInventory(inventoryToCopyTo);
-                inventoryToCopyTo.CopyItemsFrom(baseai.currentEnemy.characterBody.inventory);
+                //Did you know? CopyItemsFrom deletes all items from the target inventory, use AddItemsFrom instead!
+                //inventoryToCopyTo.CopyItemsFrom(baseai.currentEnemy.characterBody.inventory);
+                inventoryToCopyTo.AddItemsFrom(baseai.currentEnemy.characterBody.inventory, InheranceBlacklist.Value ? ewiBlacklistItemCopyFilterDelegate : ewiDefaultItemCopyFilterDelegate);
                 if (UmbraeBlacklistLimitOperation.Value)
                 {
                     BlacklistAndMultiplyAndLimitInventory(inventoryToCopyTo);
@@ -411,7 +436,7 @@ namespace BaddiesWithItems
 
         private const int maxFailedAttempts = 5;
 
-        [ConCommand(commandName = "ewi_midRunData", flags = ConVarFlags.SenderMustBeServer, helpText = "Shows data specific to the run. Only usable in a run.")]
+        [ConCommand(commandName = "ewi_midRunData", flags = ConVarFlags.SenderMustBeServer, helpText = "Shows data specific to the run, such as expected amount of items to generate. Only usable in a run.")]
         private static void PrintMidRunData(ConCommandArgs args)
         {
             if (!Run.instance)
