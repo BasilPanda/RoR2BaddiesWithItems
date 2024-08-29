@@ -13,7 +13,7 @@ namespace BaddiesWithItems
     public class EnemiesWithItems : BaseUnityPlugin
     {
         internal const string ModIdentifier = "EnemiesWithItems";
-        internal const string ModVer = "3.0.7";
+        internal const string ModVer = "3.0.8";
 
         public static EnemiesWithItems instance;
 

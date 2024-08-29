@@ -1,9 +1,9 @@
 {
     "name": "EnemiesWithItems",
-    "version_number": "3.0.7",
+    "version_number": "3.0.8",
     "website_url": "https://github.com/BasilPanda/RoR2BaddiesWithItems",
     "description": "Allows enemies to be spawned with different items. Lots of configuration such as custom blacklisting and having enemies inherit player items or drop their items.",
     "dependencies": [
-        "bbepis-BepInExPack-5.4.1902"
+        "bbepis-BepInExPack-5.4.2117"
     ]
 }

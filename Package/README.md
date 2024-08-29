@@ -47,6 +47,9 @@ Please contact Anreol#8231 on Discord for any issues or interests!
 	- A: While it is possible, having a good solution for this (so not using chat or console logs) is rather difficult to come up.
 
 ## Changelog
+**0.0.3**
+- Recompiled for ver. 1.3.1#274
+
 **v3.0.7**
 - Player item inherance is now a float instead of a true / false activation.
 - If inherance blacklist is enabled, it will now check twice for violating items.
